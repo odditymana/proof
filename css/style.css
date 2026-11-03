@@ -115,7 +115,11 @@ p {
   position: relative;
 }
 
+/* 透明な部分が透明だと分かるよう、画像の範囲内だけに薄い市松模様を敷く（8px角） */
 .proof-image {
+  background-color: #767676;
+  background-image: conic-gradient(#707070 0 25%, #7c7c7c 0 50%, #707070 0 75%, #7c7c7c 0);
+  background-size: 16px 16px;
   display: block;
   max-width: 100%;
   max-height: calc(100vh - 13rem);
@@ -306,6 +310,64 @@ p {
 
 .range .readout {
   text-align: right;
+}
+
+/* 色の抽出結果：割合の帯（カラーバー）と一覧 */
+.palette {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.palette-bar {
+  display: flex;
+  height: 1.5rem;
+  outline: 1px solid var(--line);
+}
+
+.palette-bar span {
+  flex-basis: 0;
+  min-width: 0;
+}
+
+.palette-list {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+}
+
+.palette-list li {
+  display: grid;
+  grid-template-columns: 0.875rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+/* 色見本：背景のグレーに近い色でも境目が分かるよう、細い枠をつける */
+.swatch {
+  width: 0.875rem;
+  height: 0.875rem;
+  outline: 1px solid var(--line);
+}
+
+.percent {
+  text-align: right;
+}
+
+.palette-top {
+  margin: 0;
+}
+
+.palette-note:empty {
+  display: none;
+}
+
+.palette-note {
+  font-size: 0.8125rem;
 }
 
 /* Windowsのハイコントラストなど、OSが色を強制する設定では標準の見た目に戻す */

@@ -4,6 +4,8 @@ import { initImageLoader } from './image-loader.js';
 import { measureAspect } from './ratios.js';
 import { createOverlay } from './overlay.js';
 import { createGrid, shortPart } from './grid.js';
+import { samplePixels, medianCut } from './palette.js';
+import { renderPalette } from './palette-view.js';
 
 const stage = document.querySelector('.stage');
 const dropButton = document.querySelector('#drop-button');
@@ -43,6 +45,32 @@ gridForm.addEventListener('input', updateGrid);
 gridForm.addEventListener('change', updateGrid);
 updateGrid();
 
+// 色の抽出：画素は画像ごとに1回だけ読み取り、色数を変えたら減色だけやり直す
+const paletteForm = document.querySelector('#palette-form');
+const paletteCountValue = document.querySelector('#palette-count-value');
+const paletteEmpty = document.querySelector('#palette-empty');
+const paletteResult = document.querySelector('#palette-result');
+const paletteParts = {
+  bar: paletteResult.querySelector('.palette-bar'),
+  list: paletteResult.querySelector('.palette-list'),
+  top: paletteResult.querySelector('.palette-top'),
+  note: paletteResult.querySelector('.palette-note'),
+};
+let pixels = null;
+
+function updatePalette() {
+  const count = Number(new FormData(paletteForm).get('count'));
+  paletteCountValue.textContent = `${count}色`;
+  if (!pixels) return;
+
+  renderPalette(paletteParts, medianCut(pixels, count), count);
+  paletteEmpty.hidden = true;
+  paletteResult.hidden = false;
+}
+
+paletteForm.addEventListener('input', updatePalette);
+paletteForm.addEventListener('change', updatePalette);
+
 initImageLoader({
   dropZone: stage,
   input: document.querySelector('#file-input'),
@@ -68,6 +96,9 @@ initImageLoader({
 
     imageInfo.hidden = false;
     status.textContent = '';
+
+    pixels = samplePixels(image);
+    updatePalette();
   },
 
   onError(message) {

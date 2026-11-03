@@ -83,7 +83,22 @@
 
       <section class="panel-section" aria-labelledby="h-palette">
         <h2 id="h-palette" class="label">色の抽出</h2>
-        <p class="placeholder">—</p>
+        <form id="palette-form" class="controls">
+          <div class="range">
+            <label for="palette-count">色数</label>
+            <input type="range" id="palette-count" name="count" min="3" max="8" step="1" value="5">
+            <output id="palette-count-value" class="readout" for="palette-count">5色</output>
+          </div>
+        </form>
+        <p id="palette-empty" class="placeholder">—</p>
+        <div id="palette-result" class="palette" hidden>
+          <div class="palette-bar" aria-hidden="true"></div>
+          <ol class="palette-list" aria-label="抽出した色（割合の多い順）"></ol>
+          <dl class="info palette-top">
+            <dt></dt><dd></dd>
+          </dl>
+          <p class="palette-note" role="status"></p>
+        </div>
       </section>
     </aside>
   </main>
