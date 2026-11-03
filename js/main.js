@@ -19,6 +19,7 @@ const grid = createGrid(overlay.addLayer('grid'));
 const gridForm = document.querySelector('#grid-form');
 const gridSide = document.querySelector('#grid-side');
 const gridPosition = document.querySelector('#grid-position');
+const gridOpacityValue = document.querySelector('#grid-opacity-value');
 const SIDE_NAMES = { left: '左', right: '右', top: '上', bottom: '下' };
 
 function updateGrid() {
@@ -33,9 +34,12 @@ function updateGrid() {
       `${SIDE_NAMES[settings.side]}端から${shortPart(settings.type).toFixed(1)}%`;
   }
 
+  gridOpacityValue.textContent = `${settings.opacity}%`;
   grid.render(settings);
 }
 
+// スライダーは動かしている間も反映する
+gridForm.addEventListener('input', updateGrid);
 gridForm.addEventListener('change', updateGrid);
 updateGrid();
 

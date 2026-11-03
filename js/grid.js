@@ -10,6 +10,12 @@ const SHORT_PART = {
   silver: 100 / (1 + SILVER), // 41.4%
 };
 
+const LINE_COLORS = {
+  white: '#ffffff',
+  black: '#000000',
+  magenta: '#ff00ff',
+};
+
 export function shortPart(type) {
   return SHORT_PART[type];
 }
@@ -25,8 +31,11 @@ export function createGrid(layer) {
   }
 
   return {
-    render({ type, mode, side }) {
+    render({ type, mode, side, color, opacity }) {
       layer.replaceChildren();
+      layer.style.stroke = LINE_COLORS[color];
+      // 線ごとではなくレイヤー全体にかけ、線が交わる点だけ濃くならないようにする
+      layer.style.opacity = opacity / 100;
       if (type === 'none') return;
 
       const s = SHORT_PART[type];

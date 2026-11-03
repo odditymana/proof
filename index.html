@@ -67,6 +67,17 @@
             <label><input type="radio" name="side" value="bottom">下</label>
           </fieldset>
           <output id="grid-position" class="readout" for="grid-side" hidden></output>
+          <fieldset>
+            <legend>線の色</legend>
+            <label><input type="radio" name="color" value="white" checked>白</label>
+            <label><input type="radio" name="color" value="black">黒</label>
+            <label><input type="radio" name="color" value="magenta">マゼンタ</label>
+          </fieldset>
+          <div class="range">
+            <label for="grid-opacity">不透明度</label>
+            <input type="range" id="grid-opacity" name="opacity" min="10" max="100" step="10" value="100">
+            <output id="grid-opacity-value" class="readout" for="grid-opacity">100%</output>
+          </div>
         </form>
       </section>
 
