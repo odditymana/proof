@@ -47,6 +47,13 @@ export function initImageLoader({ dropZone, input, buttons, onLoad, onError }) {
       return;
     }
 
+    // 縦横の大きさを持たない画像（一部のSVGなど）は計測できない
+    if (!image.naturalWidth || !image.naturalHeight) {
+      URL.revokeObjectURL(url);
+      onError('この画像は縦横の大きさが取得できませんでした。');
+      return;
+    }
+
     // 前の画像のURLを解放する
     if (currentUrl) URL.revokeObjectURL(currentUrl);
     currentUrl = url;

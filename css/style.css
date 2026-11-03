@@ -227,6 +227,7 @@ p {
 .info dd {
   margin: 0;
   overflow-wrap: anywhere;
+  white-space: pre-line; /* 値の中の改行をそのまま表示する */
 }
 
 .status:not(:empty) {

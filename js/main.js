@@ -1,6 +1,7 @@
 // 各機能のモジュールをつなぐ入口。
 
 import { initImageLoader } from './image-loader.js';
+import { measureAspect } from './ratios.js';
 
 const stage = document.querySelector('.stage');
 const dropButton = document.querySelector('#drop-button');
@@ -24,6 +25,14 @@ initImageLoader({
 
     imageInfo.querySelector('[data-info="name"]').textContent = name;
     imageInfo.querySelector('[data-info="size"]').textContent = `${width} × ${height} px`;
+
+    const aspect = measureAspect(width, height);
+    imageInfo.querySelector('[data-info="aspect"]').textContent =
+      `1:${aspect.value.toFixed(3)}（${aspect.orientation}）`;
+    imageInfo.querySelector('[data-info="nearest"]').textContent = aspect.nearest
+      ? `${aspect.nearest.label}\nに近い（差 ${(aspect.nearest.diff * 100).toFixed(1)}%）`
+      : '近い比率なし';
+
     imageInfo.hidden = false;
     status.textContent = '';
   },
