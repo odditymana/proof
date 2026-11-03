@@ -3,8 +3,10 @@
 
 let currentUrl = null;
 
-export function initImageLoader({ dropZone, input, button, onLoad, onError }) {
-  button.addEventListener('click', () => input.click());
+export function initImageLoader({ dropZone, input, buttons, onLoad, onError }) {
+  for (const button of buttons) {
+    button.addEventListener('click', () => input.click());
+  }
 
   input.addEventListener('change', () => {
     const file = input.files[0];

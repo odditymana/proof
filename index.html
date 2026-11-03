@@ -16,8 +16,18 @@
 
   <main class="layout">
     <section class="stage" aria-label="画像">
-      <div class="stage-empty">
-        <p>画像をここにドロップ<br>または「ファイルを選ぶ」</p>
+      <button type="button" class="stage-empty" id="drop-button">
+        画像をここにドロップ<br>またはタップしてファイルを選ぶ
+      </button>
+
+      <div class="sheet" hidden>
+        <div class="sheet-image">
+          <!-- 四隅のトンボ（印刷物の裁ち位置を示す目印） -->
+          <span class="trim trim--tl" aria-hidden="true"></span>
+          <span class="trim trim--tr" aria-hidden="true"></span>
+          <span class="trim trim--bl" aria-hidden="true"></span>
+          <span class="trim trim--br" aria-hidden="true"></span>
+        </div>
       </div>
     </section>
 

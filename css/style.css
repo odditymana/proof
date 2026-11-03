@@ -6,7 +6,13 @@
   --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
   --sans: system-ui, -apple-system, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
   --gap: 1.5rem;
+  --trim-gap: 6px;      /* 画像の端からトンボまでの隙間 */
+  --trim-length: 18px;  /* トンボの線の長さ */
   color-scheme: light;
+}
+
+[hidden] {
+  display: none !important;
 }
 
 *,
@@ -90,18 +96,79 @@ p {
   width: 100%;
   min-height: 60vh;
   border: 1px dashed var(--line);
+  background: transparent;
+  color: var(--fg);
   font-family: var(--mono);
   font-size: 0.8125rem;
+  line-height: 1.8;
   text-align: center;
+  cursor: pointer;
+}
+
+/* トンボがはみ出さないよう、その分の余白を取る */
+.sheet {
+  max-width: 100%;
+  padding: calc(var(--trim-gap) + var(--trim-length));
+}
+
+.sheet-image {
+  position: relative;
 }
 
 .proof-image {
   display: block;
   max-width: 100%;
-  max-height: calc(100vh - 10rem);
+  max-height: calc(100vh - 13rem);
   width: auto;
   height: auto;
 }
+
+/* トンボ：各隅の点から、横線と縦線を外側へ伸ばす */
+.trim {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.trim::before,
+.trim::after {
+  content: "";
+  position: absolute;
+  background: var(--fg);
+}
+
+.trim::before {
+  width: var(--trim-length);
+  height: 1px;
+}
+
+.trim::after {
+  width: 1px;
+  height: var(--trim-length);
+}
+
+.trim--tl { top: 0; left: 0; }
+.trim--tr { top: 0; right: 0; }
+.trim--bl { bottom: 0; left: 0; }
+.trim--br { bottom: 0; right: 0; }
+
+.trim--tl::before,
+.trim--bl::before { right: var(--trim-gap); }
+.trim--tr::before,
+.trim--br::before { left: var(--trim-gap); }
+.trim--tl::before,
+.trim--tr::before { top: 0; }
+.trim--bl::before,
+.trim--br::before { bottom: 0; }
+
+.trim--tl::after,
+.trim--tr::after { bottom: var(--trim-gap); }
+.trim--bl::after,
+.trim--br::after { top: var(--trim-gap); }
+.trim--tl::after,
+.trim--bl::after { left: 0; }
+.trim--tr::after,
+.trim--br::after { right: 0; }
 
 .panel {
   display: flex;
@@ -155,10 +222,6 @@ p {
   margin: 0.75rem 0 0;
   font-family: var(--mono);
   font-size: 0.8125rem;
-}
-
-.info[hidden] {
-  display: none;
 }
 
 .info dd {
