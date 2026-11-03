@@ -5,12 +5,12 @@ export const SILVER = Math.SQRT2;             // 白銀比 1:1.414…（A判・B
 
 // 「近い比率」の候補。値はすべて 長辺÷短辺
 const CANDIDATES = [
-  { label: '1:1', value: 1 },
-  { label: '4:3', value: 4 / 3 },
-  { label: '3:2', value: 3 / 2 },
-  { label: '白銀比 1:1.414（A判・B判）', value: SILVER },
-  { label: '黄金比 1:1.618', value: GOLDEN },
-  { label: '16:9', value: 16 / 9 },
+  { name: '1:1', value: 1 },
+  { name: '4:3', value: 4 / 3 },
+  { name: '3:2', value: 3 / 2 },
+  { name: '白銀比（A判・B判）', value: SILVER },
+  { name: '黄金比', value: GOLDEN },
+  { name: '16:9', value: 16 / 9 },
 ];
 
 // 候補との差がこの範囲（±2%）に収まれば「近い」とする
@@ -25,7 +25,7 @@ export function measureAspect(width, height) {
   for (const candidate of CANDIDATES) {
     const diff = Math.abs(value / candidate.value - 1);
     if (diff <= TOLERANCE && (!nearest || diff < nearest.diff)) {
-      nearest = { label: candidate.label, diff };
+      nearest = { name: candidate.name, value: candidate.value, diff };
     }
   }
 
