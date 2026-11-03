@@ -47,7 +47,27 @@
 
       <section class="panel-section" aria-labelledby="h-grid">
         <h2 id="h-grid" class="label">比率グリッド</h2>
-        <p class="placeholder">—</p>
+        <form id="grid-form" class="controls">
+          <fieldset>
+            <legend>種類</legend>
+            <label><input type="radio" name="type" value="none">なし</label>
+            <label><input type="radio" name="type" value="golden">黄金比</label>
+            <label><input type="radio" name="type" value="silver" checked>白銀比</label>
+          </fieldset>
+          <fieldset>
+            <legend>モード</legend>
+            <label><input type="radio" name="mode" value="both" checked>両側</label>
+            <label><input type="radio" name="mode" value="one">片側</label>
+          </fieldset>
+          <fieldset id="grid-side" hidden>
+            <legend>基準の辺</legend>
+            <label><input type="radio" name="side" value="left" checked>左</label>
+            <label><input type="radio" name="side" value="right">右</label>
+            <label><input type="radio" name="side" value="top">上</label>
+            <label><input type="radio" name="side" value="bottom">下</label>
+          </fieldset>
+          <output id="grid-position" class="readout" for="grid-side" hidden></output>
+        </form>
       </section>
 
       <section class="panel-section" aria-labelledby="h-palette">

@@ -3,6 +3,7 @@
 import { initImageLoader } from './image-loader.js';
 import { measureAspect } from './ratios.js';
 import { createOverlay } from './overlay.js';
+import { createGrid, shortPart } from './grid.js';
 
 const stage = document.querySelector('.stage');
 const dropButton = document.querySelector('#drop-button');
@@ -11,7 +12,32 @@ const sheetImage = sheet.querySelector('.sheet-image');
 const imageInfo = document.querySelector('#image-info');
 const status = document.querySelector('#status');
 
-createOverlay(sheetImage);
+const overlay = createOverlay(sheetImage);
+
+// 比率グリッド
+const grid = createGrid(overlay.addLayer('grid'));
+const gridForm = document.querySelector('#grid-form');
+const gridSide = document.querySelector('#grid-side');
+const gridPosition = document.querySelector('#grid-position');
+const SIDE_NAMES = { left: '左', right: '右', top: '上', bottom: '下' };
+
+function updateGrid() {
+  const settings = Object.fromEntries(new FormData(gridForm));
+  const isOneSide = settings.mode === 'one';
+  gridSide.hidden = !isOneSide;
+
+  // 片側モードでは、線の位置を一言で表示する
+  gridPosition.hidden = !isOneSide || settings.type === 'none';
+  if (!gridPosition.hidden) {
+    gridPosition.textContent =
+      `${SIDE_NAMES[settings.side]}端から${shortPart(settings.type).toFixed(1)}%`;
+  }
+
+  grid.render(settings);
+}
+
+gridForm.addEventListener('change', updateGrid);
+updateGrid();
 
 initImageLoader({
   dropZone: stage,

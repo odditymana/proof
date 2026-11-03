@@ -138,6 +138,11 @@ p {
   vector-effect: non-scaling-stroke;
 }
 
+.overlay [data-layer="grid"] {
+  stroke: #ffffff;
+  stroke-width: 1px;
+}
+
 /* トンボ：各隅の点から、横線と縦線を外側へ伸ばす */
 .trim {
   position: absolute;
@@ -222,6 +227,68 @@ p {
 .button:hover {
   background: var(--fg);
   color: var(--bg);
+}
+
+/* 設定の選択肢：見出し（legend）と横並びのラジオボタン */
+.controls {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.controls fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.controls legend {
+  float: left; /* 見出しを1行目に置き、選択肢を次の行から並べる */
+  width: 100%;
+  padding: 0;
+  margin-bottom: 0.125rem;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+}
+
+.controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+/* ラジオボタン：白い輪。選択中は中に白い点 */
+.controls input[type="radio"] {
+  appearance: none;
+  flex: none;
+  width: 0.875rem;
+  height: 0.875rem;
+  margin: 0;
+  border: 1px solid var(--fg);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+
+.controls input[type="radio"]:checked {
+  background: var(--fg);
+  box-shadow: inset 0 0 0 2px var(--bg);
+}
+
+.readout {
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+}
+
+/* Windowsのハイコントラストなど、OSが色を強制する設定では標準の見た目に戻す */
+@media (forced-colors: active) {
+  .controls input[type="radio"] {
+    appearance: auto;
+  }
 }
 
 /* キーボード操作時のフォーカス表示 */
