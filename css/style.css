@@ -212,6 +212,7 @@ p {
 }
 
 .placeholder {
+  margin-top: 0.75rem;
   font-family: var(--mono);
   font-size: 0.8125rem;
 }

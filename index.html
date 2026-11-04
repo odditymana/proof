@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PROOF</title>
   <meta name="description" content="画像の構図・配色を自分の目で確かめるためのツール。画像はブラウザ内だけで処理します。">
+  <!-- アイコンは使わない。ブラウザが favicon.ico を探しに行かないよう空を指定する -->
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="css/style.css">
   <script type="module" src="js/main.js"></script>
 </head>
@@ -17,7 +19,7 @@
   <main class="layout">
     <section class="stage" aria-label="画像の表示">
       <button type="button" class="stage-empty" id="drop-button">
-        画像をここにドロップ<br>またはタップしてファイルを選ぶ
+        画像をここにドロップ<br>または、クリックかタップでファイルを選ぶ
       </button>
 
       <div class="sheet" hidden>
@@ -90,7 +92,7 @@
             <output id="palette-count-value" class="readout" for="palette-count">5色</output>
           </div>
         </form>
-        <p id="palette-empty" class="placeholder">—</p>
+        <p id="palette-empty" class="placeholder">画像を読み込むと表示されます</p>
         <div id="palette-result" class="palette" hidden>
           <div class="palette-bar" aria-hidden="true"></div>
           <ol class="palette-list" aria-label="抽出した色（割合の多い順）"></ol>
