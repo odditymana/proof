@@ -15,7 +15,7 @@
   </header>
 
   <main class="layout">
-    <section class="stage" aria-label="画像">
+    <section class="stage" aria-label="画像の表示">
       <button type="button" class="stage-empty" id="drop-button">
         画像をここにドロップ<br>またはタップしてファイルを選ぶ
       </button>
@@ -75,7 +75,7 @@
           </fieldset>
           <div class="range">
             <label for="grid-opacity">不透明度</label>
-            <input type="range" id="grid-opacity" name="opacity" min="10" max="100" step="10" value="100">
+            <input type="range" id="grid-opacity" name="opacity" min="10" max="100" step="10" value="100" aria-valuetext="100%">
             <output id="grid-opacity-value" class="readout" for="grid-opacity">100%</output>
           </div>
         </form>
@@ -86,7 +86,7 @@
         <form id="palette-form" class="controls">
           <div class="range">
             <label for="palette-count">色数</label>
-            <input type="range" id="palette-count" name="count" min="3" max="8" step="1" value="5">
+            <input type="range" id="palette-count" name="count" min="3" max="8" step="1" value="5" aria-valuetext="5色">
             <output id="palette-count-value" class="readout" for="palette-count">5色</output>
           </div>
         </form>

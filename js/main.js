@@ -13,6 +13,7 @@ const sheet = document.querySelector('.sheet');
 const sheetImage = sheet.querySelector('.sheet-image');
 const imageInfo = document.querySelector('#image-info');
 const status = document.querySelector('#status');
+const fileButton = document.querySelector('#file-button');
 
 const overlay = createOverlay(sheetImage);
 
@@ -21,6 +22,7 @@ const grid = createGrid(overlay.addLayer('grid'));
 const gridForm = document.querySelector('#grid-form');
 const gridSide = document.querySelector('#grid-side');
 const gridPosition = document.querySelector('#grid-position');
+const gridOpacity = document.querySelector('#grid-opacity');
 const gridOpacityValue = document.querySelector('#grid-opacity-value');
 const SIDE_NAMES = { left: '左', right: '右', top: '上', bottom: '下' };
 
@@ -37,6 +39,7 @@ function updateGrid() {
   }
 
   gridOpacityValue.textContent = `${settings.opacity}%`;
+  gridOpacity.setAttribute('aria-valuetext', `${settings.opacity}%`); // 読み上げで単位まで伝える
   grid.render(settings);
 }
 
@@ -47,6 +50,7 @@ updateGrid();
 
 // 色の抽出：画素は画像ごとに1回だけ読み取り、色数を変えたら減色だけやり直す
 const paletteForm = document.querySelector('#palette-form');
+const paletteCount = document.querySelector('#palette-count');
 const paletteCountValue = document.querySelector('#palette-count-value');
 const paletteEmpty = document.querySelector('#palette-empty');
 const paletteResult = document.querySelector('#palette-result');
@@ -61,6 +65,7 @@ let pixels = null;
 function updatePalette() {
   const count = Number(new FormData(paletteForm).get('count'));
   paletteCountValue.textContent = `${count}色`;
+  paletteCount.setAttribute('aria-valuetext', `${count}色`);
   if (!pixels) return;
 
   renderPalette(paletteParts, medianCut(pixels, count), count);
@@ -74,14 +79,17 @@ paletteForm.addEventListener('change', updatePalette);
 initImageLoader({
   dropZone: stage,
   input: document.querySelector('#file-input'),
-  buttons: [dropButton, document.querySelector('#file-button')],
+  buttons: [dropButton, fileButton],
 
   onLoad({ image, name, width, height }) {
     image.className = 'proof-image';
     image.alt = `読み込んだ画像：${name}`;
     sheetImage.querySelector('.proof-image')?.remove();
     sheetImage.prepend(image);
+    // 空のエリアのボタンは消えるので、そこにあったフォーカスは「ファイルを選ぶ」へ移す
+    const hadFocus = document.activeElement === dropButton;
     dropButton.hidden = true;
+    if (hadFocus) fileButton.focus();
     sheet.hidden = false;
 
     imageInfo.querySelector('[data-info="name"]').textContent = name;
