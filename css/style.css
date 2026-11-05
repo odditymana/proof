@@ -199,6 +199,12 @@ p {
   gap: var(--gap);
 }
 
+.panel-column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
 .panel-section {
   padding-top: 0.75rem;
   border-top: 1px solid var(--line);
@@ -392,16 +398,135 @@ p {
   font-size: 0.8125rem;
 }
 
+/* コントラスト比：文字の色・背景の色を選ぶ欄と、結果 */
+.contrast {
+  display: grid;
+  gap: 0.5rem;
+}
+
+/* 項目名を左、選択欄を右に並べる。HEX の入力欄とエラーは選択欄の下 */
+.contrast-slot {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+}
+
+.contrast-slot > label {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+}
+
+.contrast-slot > .hex-input {
+  grid-column: 2;
+}
+
+/* エラーの文は欄の幅いっぱいに使い、途中で折り返しにくくする */
+.contrast-slot > .field-error {
+  grid-column: 1 / -1;
+}
+
+.contrast-pick {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.contrast select,
+.hex-input {
+  min-width: 0;
+  min-height: 24px;
+  padding: 0 0.375rem;
+  border: 1px solid var(--fg);
+  border-radius: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+}
+
+/* 選択欄は標準の <select> のまま、見た目だけ「ファイルを選ぶ」ボタンにそろえる
+   （macOS では標準の見た目だと白く塗られるため）。右端の印で、開けることを示す */
+.contrast select {
+  flex: 1;
+  appearance: none;
+  padding-right: 1.5rem;
+  background-color: transparent;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23fff' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  cursor: pointer;
+}
+
+/* 開いたときの選択肢の一覧も、グレーの地に白い文字で読めるようにする */
+.contrast select option {
+  background-color: var(--bg);
+  color: var(--fg);
+}
+
+.hex-input[aria-invalid="true"] {
+  border-width: 2px;
+}
+
+.field-error {
+  font-size: 0.8125rem;
+}
+
+.field-error:empty {
+  display: none;
+}
+
+.contrast-result {
+  display: grid;
+  gap: 0.5rem;
+}
+
+/* 選んだ2色で文字を出す見本。背景のグレーとの境目が分かるよう、細い枠をつける */
+.contrast-sample {
+  padding: 0.25rem 0.5rem;
+  outline: 1px solid var(--line);
+  font-size: 1rem;
+}
+
+.contrast-table {
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+}
+
+.contrast-table th,
+.contrast-table td {
+  padding: 0 1rem 0 0;
+  font-weight: 400;
+  text-align: left;
+}
+
+.contrast-note {
+  font-size: 0.75rem;
+}
+
+.contrast-note span {
+  display: block;
+}
+
+/* 2行目は「大きな文字：」の幅だけ下げ、1行目の値とそろえる */
+.contrast-note-indent {
+  padding-left: 6em;
+}
+
 /* Windowsのハイコントラストなど、OSが色を強制する設定への対応 */
 @media (forced-colors: active) {
-  /* ラジオボタンは標準の見た目に戻す */
-  .controls input[type="radio"] {
+  /* ラジオボタンと選択欄は標準の見た目に戻す */
+  .controls input[type="radio"],
+  .contrast select {
     appearance: auto;
+    background-image: none;
   }
 
   /* 色見本・カラーバー・グリッド線は色そのものが情報なので、置き換えさせない */
   .swatch,
   .palette-bar span,
+  .contrast-sample,
   .overlay {
     forced-color-adjust: none;
   }
@@ -453,18 +578,12 @@ p {
     grid-template-columns: minmax(0, 1fr) calc(30rem + var(--gap));
   }
 
+  /* 左右の列はそれぞれ縦に積むので、片方が高くなっても、もう片方の欄の間は空かない */
   .panel {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    /* 右の列が高くなっても、余りは2行目に回し、「画像」と「比率グリッド」の間を空けない */
-    grid-template-rows: auto 1fr;
     align-items: start;
     gap: var(--gap);
-  }
-
-  .panel-section:last-child {
-    grid-column: 2;
-    grid-row: 1 / span 2;
   }
 }
 

@@ -34,6 +34,8 @@
     </section>
 
     <aside class="panel" aria-label="計測と表示の設定">
+      <!-- 広い画面では左右2列。HTMLの順（＝Tabの順）は、左の列→右の列 -->
+      <div class="panel-column">
       <section class="panel-section" aria-labelledby="h-image">
         <h2 id="h-image" class="label">画像</h2>
         <button type="button" id="file-button" class="button">ファイルを選ぶ</button>
@@ -82,7 +84,9 @@
           </div>
         </form>
       </section>
+      </div>
 
+      <div class="panel-column">
       <section class="panel-section" aria-labelledby="h-palette">
         <h2 id="h-palette" class="label">色の抽出</h2>
         <form id="palette-form" class="controls">
@@ -103,6 +107,46 @@
           <p id="palette-note" class="palette-note" role="status"></p>
         </div>
       </section>
+
+      <section class="panel-section" aria-labelledby="h-contrast">
+        <h2 id="h-contrast" class="label">コントラスト比</h2>
+        <div class="contrast">
+          <div class="contrast-slot" data-slot="fg">
+            <label for="contrast-fg-select">文字の色</label>
+            <div class="contrast-pick">
+              <span class="swatch" aria-hidden="true"></span>
+              <select id="contrast-fg-select"></select>
+            </div>
+            <input type="text" id="contrast-fg-hex" class="hex-input" aria-label="文字の色（HEX）"
+              aria-describedby="contrast-fg-error" autocomplete="off" spellcheck="false" placeholder="#1F3A5F" hidden>
+            <p id="contrast-fg-error" class="field-error"></p>
+          </div>
+          <div class="contrast-slot" data-slot="bg">
+            <label for="contrast-bg-select">背景の色</label>
+            <div class="contrast-pick">
+              <span class="swatch" aria-hidden="true"></span>
+              <select id="contrast-bg-select"></select>
+            </div>
+            <input type="text" id="contrast-bg-hex" class="hex-input" aria-label="背景の色（HEX）"
+              aria-describedby="contrast-bg-error" autocomplete="off" spellcheck="false" placeholder="#E8E2D6" hidden>
+            <p id="contrast-bg-error" class="field-error"></p>
+          </div>
+          <div id="contrast-result" class="contrast-result" hidden>
+            <p class="contrast-sample" aria-hidden="true">文字の見本 Aa あア</p>
+            <p id="contrast-ratio" class="readout" role="status"></p>
+            <table class="contrast-table" aria-label="WCAG の基準ごとに、基準の値と、それを満たすかどうか">
+              <tbody>
+                <tr><th scope="row">AA 通常の文字</th><td>4.5</td><td data-level="AA" data-size="normal"></td></tr>
+                <tr><th scope="row">AA 大きな文字</th><td>3</td><td data-level="AA" data-size="large"></td></tr>
+                <tr><th scope="row">AAA 通常の文字</th><td>7</td><td data-level="AAA" data-size="normal"></td></tr>
+                <tr><th scope="row">AAA 大きな文字</th><td>4.5</td><td data-level="AAA" data-size="large"></td></tr>
+              </tbody>
+            </table>
+            <p class="contrast-note"><span>大きな文字：18pt（24px）以上</span><span class="contrast-note-indent">太字は 14pt（約18.7px）以上</span></p>
+          </div>
+        </div>
+      </section>
+      </div>
     </aside>
   </main>
 

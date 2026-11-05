@@ -4,28 +4,16 @@
 // 選んだ色が中間の明るさでも、周りとの明るさの差がつくようにするため。
 
 import { SVG_NS } from './overlay.js';
+import { luminance, contrastRatio } from './contrast.js';
 
 const DARK = 0x1a;     // #1A1A1A
 const LIGHT = 0xe6;    // #E6E6E6
 const STRENGTH = 0.8;  // 選んだ色以外を、グレーにどれだけ寄せるか
 
-// WCAG の相対輝度とコントラスト比
-function luminance(r, g, b) {
-  const [R, G, B] = [r, g, b].map((v) => {
-    const c = v / 255;
-    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-  });
-  return 0.2126 * R + 0.7152 * G + 0.0722 * B;
-}
-
-function contrast(a, b) {
-  return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
-}
-
 // 選んだ色とのコントラスト比が大きいほうのグレー。同じなら暗いほう
 export function targetGray({ r, g, b }) {
   const selected = luminance(r, g, b);
-  return contrast(selected, luminance(DARK, DARK, DARK)) >= contrast(selected, luminance(LIGHT, LIGHT, LIGHT))
+  return contrastRatio(selected, luminance(DARK, DARK, DARK)) >= contrastRatio(selected, luminance(LIGHT, LIGHT, LIGHT))
     ? DARK
     : LIGHT;
 }

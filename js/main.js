@@ -7,6 +7,7 @@ import { createGrid, shortPart } from './grid.js';
 import { samplePixels, sampleDetailPixels, medianCut, assignColors } from './palette.js';
 import { renderPalette, setSelected, formatPercent } from './palette-view.js';
 import { createHighlight } from './highlight.js';
+import { createContrastView } from './contrast-view.js';
 
 const stage = document.querySelector('.stage');
 const dropButton = document.querySelector('#drop-button');
@@ -83,6 +84,7 @@ function updatePalette() {
   palette = medianCut(pixels, count);
   assignment = assignColors(detailPixels, palette);
   renderPalette(paletteParts, palette, count);
+  contrastView.setColors(palette.colors);
   paletteEmpty.hidden = true;
   paletteResult.hidden = false;
   // 色数が変わると色の番号の意味が変わるので、選択は解除する
@@ -118,10 +120,16 @@ paletteParts.list.addEventListener('click', (event) => {
   selectColor(index === selected ? null : index);
 });
 
-// Esc キーでも解除する（色を選んでいるときだけ）
+// Esc キーでも解除する（色を選んでいるときだけ）。入力欄や選択欄の中の Esc は、その欄のためのものなので除く
 document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && selected !== null) selectColor(null);
+  if (event.key !== 'Escape' || selected === null) return;
+  if (event.target.closest('input[type="text"], select')) return;
+  selectColor(null);
 });
+
+// コントラスト比：画像がなくても「HEXで入力」で使える
+const contrastView = createContrastView(document.querySelector('.contrast'));
+contrastView.setColors([]);
 
 initImageLoader({
   dropZone: stage,
