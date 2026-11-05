@@ -76,9 +76,14 @@
             <label><input type="checkbox" name="thirds" id="grid-thirds">三分割</label>
             <label><input type="checkbox" name="diagonals" id="grid-diagonals">対角線</label>
             <label><input type="checkbox" name="perpendiculars" id="grid-perpendiculars">直角の線</label>
-            <label><input type="checkbox" name="spiral" id="grid-spiral">黄金螺旋</label>
           </fieldset>
           <output id="perpendicular-position" class="readout" for="grid-perpendiculars" hidden></output>
+          <fieldset id="grid-spiral">
+            <legend>螺旋</legend>
+            <label><input type="radio" name="spiral" value="none" checked>なし</label>
+            <label><input type="radio" name="spiral" value="golden">黄金比</label>
+            <label><input type="radio" name="spiral" value="silver">白銀比</label>
+          </fieldset>
           <fieldset id="grid-spiral-corner" hidden>
             <legend>巻き始めの角</legend>
             <label><input type="radio" name="spiralCorner" value="tl">左上</label>
