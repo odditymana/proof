@@ -3,7 +3,10 @@
 import { initImageLoader } from './image-loader.js';
 import { measureAspect } from './ratios.js';
 import { createOverlay } from './overlay.js';
+import { applyLineStyle } from './lines.js';
 import { createGrid, shortPart } from './grid.js';
+import { createThirds } from './thirds.js';
+import { createDiagonals, perpendicularHit } from './diagonals.js';
 import { samplePixels, sampleDetailPixels, medianCut, assignColors } from './palette.js';
 import { renderPalette, setSelected, formatPercent } from './palette-view.js';
 import { createHighlight } from './highlight.js';
@@ -22,14 +25,19 @@ const overlay = createOverlay(sheetImage);
 // 色の場所の強調表示。グリッドの線が隠れないよう、グリッドより先（下）に重ねる
 const highlight = createHighlight(overlay.addLayer('highlight'));
 
-// 比率グリッド
-const grid = createGrid(overlay.addLayer('grid'));
+// 重ねる線：比率グリッド・三分割・対角線。種類ごとにレイヤーを分け、線の色と不透明度は線全体のレイヤーにかける
+const lineLayer = overlay.addLayer('lines');
+const grid = createGrid(overlay.addLayer('grid', lineLayer));
+const thirds = createThirds(overlay.addLayer('thirds', lineLayer));
+const diagonals = createDiagonals(overlay.addLayer('diagonals', lineLayer));
 const gridForm = document.querySelector('#grid-form');
 const gridSide = document.querySelector('#grid-side');
 const gridPosition = document.querySelector('#grid-position');
+const diagonalPosition = document.querySelector('#diagonal-position');
 const gridOpacity = document.querySelector('#grid-opacity');
 const gridOpacityValue = document.querySelector('#grid-opacity-value');
 const SIDE_NAMES = { left: '左', right: '右', top: '上', bottom: '下' };
+let imageSize = null; // 読み込んだ画像の画素数 { width, height }。対角線に直角な線の位置の計算に使う
 
 function updateGrid() {
   const settings = Object.fromEntries(new FormData(gridForm));
@@ -43,9 +51,32 @@ function updateGrid() {
       `${SIDE_NAMES[settings.side]}端から${shortPart(settings.type).toFixed(1)}%`;
   }
 
+  // 対角線に直角な線が長辺と交わる位置を、画像の画素数から計算して表示する
+  const showDiagonals = settings.diagonals === 'on';
+  diagonalPosition.hidden = !showDiagonals || !imageSize;
+  if (!diagonalPosition.hidden) {
+    if (imageSize.width === imageSize.height) {
+      // 1行に収まらないので、読点の位置で折り返す（「ます」だけが次の行に送られないように）
+      diagonalPosition.replaceChildren(
+        ...['直角の線は、', 'もう一方の対角線と重なります'].map((text) => {
+          const span = document.createElement('span');
+          span.className = 'nowrap';
+          span.textContent = text;
+          return span;
+        }),
+      );
+    } else {
+      diagonalPosition.textContent =
+        `直角の線：長辺の端から${perpendicularHit(imageSize.width, imageSize.height).toFixed(1)}%`;
+    }
+  }
+
   gridOpacityValue.textContent = `${settings.opacity}%`;
   gridOpacity.setAttribute('aria-valuetext', `${settings.opacity}%`); // 読み上げで単位まで伝える
+  applyLineStyle(lineLayer, settings);
   grid.render(settings);
+  thirds.render(settings.thirds === 'on');
+  diagonals.render({ visible: showDiagonals, ...imageSize });
 }
 
 // スライダーは動かしている間も反映する
@@ -159,6 +190,9 @@ initImageLoader({
 
     imageInfo.hidden = false;
     status.textContent = '';
+
+    imageSize = { width, height };
+    updateGrid(); // 対角線は画像の縦横比で引き方が変わるので、引き直す
 
     pixels = samplePixels(image);
     detailPixels = sampleDetailPixels(image);

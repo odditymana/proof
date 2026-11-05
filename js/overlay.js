@@ -14,10 +14,11 @@ export function createOverlay(container) {
   container.append(svg);
 
   return {
-    addLayer(name) {
+    // parent を渡すと、そのレイヤーの中に入れる（線の種類ごとのレイヤーを、線全体のレイヤーにまとめるときなど）
+    addLayer(name, parent = svg) {
       const layer = document.createElementNS(SVG_NS, 'g');
       layer.dataset.layer = name;
-      svg.append(layer);
+      parent.append(layer);
       return layer;
     },
   };

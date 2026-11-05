@@ -290,9 +290,31 @@ p {
   box-shadow: inset 0 0 0 2px var(--bg);
 }
 
+/* チェックボックス：白い四角。オンのときは中を白く塗る（ラジオボタンと同じ考え方） */
+.controls input[type="checkbox"] {
+  appearance: none;
+  flex: none;
+  width: 0.875rem;
+  height: 0.875rem;
+  margin: 0;
+  border: 1px solid var(--fg);
+  background: transparent;
+  cursor: pointer;
+}
+
+.controls input[type="checkbox"]:checked {
+  background: var(--fg);
+  box-shadow: inset 0 0 0 2px var(--bg);
+}
+
 .readout {
   font-family: var(--mono);
   font-size: 0.8125rem;
+}
+
+/* 折り返すなら、このかたまりの前後で（途中では折り返さない） */
+.nowrap {
+  display: inline-block;
 }
 
 /* スライダー：見出しを1行目、スライダーと値を2行目に並べる */
@@ -516,8 +538,9 @@ p {
 
 /* Windowsのハイコントラストなど、OSが色を強制する設定への対応 */
 @media (forced-colors: active) {
-  /* ラジオボタンと選択欄は標準の見た目に戻す */
+  /* ラジオボタン・チェックボックス・選択欄は標準の見た目に戻す */
   .controls input[type="radio"],
+  .controls input[type="checkbox"],
   .contrast select {
     appearance: auto;
     background-image: none;
