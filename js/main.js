@@ -34,6 +34,7 @@ const diagonals = createDiagonals(overlay.addLayer('diagonals', lineLayer));
 const perpendiculars = createPerpendiculars(overlay.addLayer('perpendiculars', lineLayer));
 const spiral = createGoldenSpiral(overlay.addLayer('spiral', lineLayer));
 const gridForm = document.querySelector('#grid-form');
+const gridMode = document.querySelector('#grid-mode');
 const gridSide = document.querySelector('#grid-side');
 const gridPosition = document.querySelector('#grid-position');
 const perpendicularPosition = document.querySelector('#perpendicular-position');
@@ -60,7 +61,10 @@ function phrase(parts) {
 function updateGrid() {
   const settings = Object.fromEntries(new FormData(gridForm));
   const isOneSide = settings.mode === 'one';
-  gridSide.hidden = !isOneSide;
+  // 比率が「なし」のときは、モードと基準の辺の段を隠す（選択は残るので、比率を選び直すと前の設定に戻る）
+  const hasRatio = settings.type !== 'none';
+  gridMode.hidden = !hasRatio;
+  gridSide.hidden = !hasRatio || !isOneSide;
 
   // 片側モードでは、線の位置を一言で表示する
   gridPosition.hidden = !isOneSide || settings.type === 'none';
