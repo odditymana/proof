@@ -343,11 +343,30 @@ p {
   font-size: 0.8125rem;
 }
 
-.palette-list li {
+/* 一覧の各色は、押すと画像上でその色の場所を強調表示するボタン */
+.palette-item {
   display: grid;
   grid-template-columns: 0.875rem minmax(0, 1fr) auto;
   align-items: center;
   gap: 0.625rem;
+  width: 100%;
+  min-height: 24px;
+  padding: 0 0.375rem;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.palette-item:hover {
+  border-color: var(--line);
+}
+
+/* 押している色：色だけに頼らず、白い枠で示す */
+.palette-item[aria-pressed="true"] {
+  border-color: var(--fg);
 }
 
 /* 色見本：背景のグレーに近い色でも境目が分かるよう、細い枠をつける */

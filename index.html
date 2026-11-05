@@ -95,11 +95,12 @@
         <p id="palette-empty" class="placeholder">画像を読み込むと表示されます</p>
         <div id="palette-result" class="palette" hidden>
           <div class="palette-bar" aria-hidden="true"></div>
-          <ol class="palette-list" aria-label="抽出した色（割合の多い順）"></ol>
+          <ol class="palette-list" aria-label="抽出した色（割合の多い順）。押すと画像上でその色の場所を強調表示"></ol>
+          <p id="highlight-status" class="palette-note" role="status"></p>
           <dl class="info palette-top">
             <dt></dt><dd></dd>
           </dl>
-          <p class="palette-note" role="status"></p>
+          <p id="palette-note" class="palette-note" role="status"></p>
         </div>
       </section>
     </aside>

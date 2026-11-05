@@ -4,8 +4,9 @@ import { initImageLoader } from './image-loader.js';
 import { measureAspect } from './ratios.js';
 import { createOverlay } from './overlay.js';
 import { createGrid, shortPart } from './grid.js';
-import { samplePixels, medianCut } from './palette.js';
-import { renderPalette } from './palette-view.js';
+import { samplePixels, sampleDetailPixels, medianCut, assignColors } from './palette.js';
+import { renderPalette, setSelected, formatPercent } from './palette-view.js';
+import { createHighlight } from './highlight.js';
 
 const stage = document.querySelector('.stage');
 const dropButton = document.querySelector('#drop-button');
@@ -16,6 +17,9 @@ const status = document.querySelector('#status');
 const fileButton = document.querySelector('#file-button');
 
 const overlay = createOverlay(sheetImage);
+
+// 色の場所の強調表示。グリッドの線が隠れないよう、グリッドより先（下）に重ねる
+const highlight = createHighlight(overlay.addLayer('highlight'));
 
 // 比率グリッド
 const grid = createGrid(overlay.addLayer('grid'));
@@ -58,23 +62,66 @@ const paletteParts = {
   bar: paletteResult.querySelector('.palette-bar'),
   list: paletteResult.querySelector('.palette-list'),
   top: paletteResult.querySelector('.palette-top'),
-  note: paletteResult.querySelector('.palette-note'),
+  note: paletteResult.querySelector('#palette-note'),
 };
-let pixels = null;
+const highlightStatus = document.querySelector('#highlight-status');
+let pixels = null;        // 色の割合の計測用（幅100px）
+let detailPixels = null;  // 強調表示用（長辺1000px）
+let palette = null;
+let assignment = null;    // 強調表示用の、各画素がどの色に属するか
+let paletteCountShown = null;
+let selected = null;      // 選んでいる色の番号（なければ null）
 
 function updatePalette() {
   const count = Number(new FormData(paletteForm).get('count'));
   paletteCountValue.textContent = `${count}色`;
   paletteCount.setAttribute('aria-valuetext', `${count}色`);
-  if (!pixels) return;
+  // input と change の両方で呼ばれるので、色数が変わっていなければやり直さない
+  if (!pixels || count === paletteCountShown) return;
+  paletteCountShown = count;
 
-  renderPalette(paletteParts, medianCut(pixels, count), count);
+  palette = medianCut(pixels, count);
+  assignment = assignColors(detailPixels, palette);
+  renderPalette(paletteParts, palette, count);
   paletteEmpty.hidden = true;
   paletteResult.hidden = false;
+  // 色数が変わると色の番号の意味が変わるので、選択は解除する
+  selectColor(null);
+}
+
+// 色を選ぶ（null で解除）。強調表示と、一覧の「押された状態」、読み上げ用の一言をそろえて変える
+function selectColor(index) {
+  selected = index;
+  setSelected(paletteParts.list, index);
+  if (index === null) {
+    highlight.clear();
+    highlightStatus.textContent = '';
+    return;
+  }
+  const color = palette.colors[index];
+  const label = `${color.hex}（${formatPercent(color.ratio)}）`;
+  highlight.show(assignment, index);
+  // 縮小したときにだけ生まれた境目の色は、細かい割り当てには画素がないことがある。隠さずにそのまま伝える
+  highlightStatus.textContent = assignment.indices.includes(index)
+    ? `${label}の場所を強調表示しています。`
+    : `${label}に当てはまる画素は、元の解像度の画像にはありません。縮小して計測したときに、色の境目から生まれた色です。`;
 }
 
 paletteForm.addEventListener('input', updatePalette);
 paletteForm.addEventListener('change', updatePalette);
+
+// 同じ色をもう一度押すと解除、別の色を押すと切り替え
+paletteParts.list.addEventListener('click', (event) => {
+  const button = event.target.closest('.palette-item');
+  if (!button) return;
+  const index = Number(button.dataset.index);
+  selectColor(index === selected ? null : index);
+});
+
+// Esc キーでも解除する（色を選んでいるときだけ）
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && selected !== null) selectColor(null);
+});
 
 initImageLoader({
   dropZone: stage,
@@ -106,6 +153,8 @@ initImageLoader({
     status.textContent = '';
 
     pixels = samplePixels(image);
+    detailPixels = sampleDetailPixels(image);
+    paletteCountShown = null; // 画像が替わったので、同じ色数でも計算し直す
     updatePalette();
   },
 
