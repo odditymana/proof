@@ -312,6 +312,12 @@ p {
   font-size: 0.8125rem;
 }
 
+/* 数値の下に添える一言 */
+.readout-note {
+  display: block;
+  margin-top: 0.25rem;
+}
+
 /* 折り返すなら、このかたまりの前後で（途中では折り返さない） */
 .nowrap {
   display: inline-block;

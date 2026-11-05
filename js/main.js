@@ -6,7 +6,7 @@ import { createOverlay } from './overlay.js';
 import { applyLineStyle } from './lines.js';
 import { createGrid, shortPart } from './grid.js';
 import { createThirds } from './thirds.js';
-import { createDiagonals, perpendicularHit } from './diagonals.js';
+import { createDiagonals, createPerpendiculars, perpendicularHit } from './diagonals.js';
 import { samplePixels, sampleDetailPixels, medianCut, assignColors } from './palette.js';
 import { renderPalette, setSelected, formatPercent } from './palette-view.js';
 import { createHighlight } from './highlight.js';
@@ -25,19 +25,32 @@ const overlay = createOverlay(sheetImage);
 // 色の場所の強調表示。グリッドの線が隠れないよう、グリッドより先（下）に重ねる
 const highlight = createHighlight(overlay.addLayer('highlight'));
 
-// 重ねる線：比率グリッド・三分割・対角線。種類ごとにレイヤーを分け、線の色と不透明度は線全体のレイヤーにかける
+// 重ねる線：比率グリッド・三分割・対角線・直角の線。種類ごとにレイヤーを分け、線の色と不透明度は線全体のレイヤーにかける
 const lineLayer = overlay.addLayer('lines');
 const grid = createGrid(overlay.addLayer('grid', lineLayer));
 const thirds = createThirds(overlay.addLayer('thirds', lineLayer));
 const diagonals = createDiagonals(overlay.addLayer('diagonals', lineLayer));
+const perpendiculars = createPerpendiculars(overlay.addLayer('perpendiculars', lineLayer));
 const gridForm = document.querySelector('#grid-form');
 const gridSide = document.querySelector('#grid-side');
 const gridPosition = document.querySelector('#grid-position');
-const diagonalPosition = document.querySelector('#diagonal-position');
+const perpendicularPosition = document.querySelector('#perpendicular-position');
 const gridOpacity = document.querySelector('#grid-opacity');
 const gridOpacityValue = document.querySelector('#grid-opacity-value');
 const SIDE_NAMES = { left: '左', right: '右', top: '上', bottom: '下' };
 let imageSize = null; // 読み込んだ画像の画素数 { width, height }。対角線に直角な線の位置の計算に使う
+
+// 1行に収まらない文を、決めたかたまりの区切りでだけ折り返すようにする（「ます」だけが次の行に送られないように）
+function phrase(parts) {
+  const wrapper = document.createElement('span');
+  for (const text of parts) {
+    const span = document.createElement('span');
+    span.className = 'nowrap';
+    span.textContent = text;
+    wrapper.append(span);
+  }
+  return wrapper;
+}
 
 function updateGrid() {
   const settings = Object.fromEntries(new FormData(gridForm));
@@ -52,22 +65,20 @@ function updateGrid() {
   }
 
   // 対角線に直角な線が長辺と交わる位置を、画像の画素数から計算して表示する
-  const showDiagonals = settings.diagonals === 'on';
-  diagonalPosition.hidden = !showDiagonals || !imageSize;
-  if (!diagonalPosition.hidden) {
-    if (imageSize.width === imageSize.height) {
-      // 1行に収まらないので、読点の位置で折り返す（「ます」だけが次の行に送られないように）
-      diagonalPosition.replaceChildren(
-        ...['直角の線は、', 'もう一方の対角線と重なります'].map((text) => {
-          const span = document.createElement('span');
-          span.className = 'nowrap';
-          span.textContent = text;
-          return span;
-        }),
-      );
+  const showPerpendiculars = settings.perpendiculars === 'on';
+  perpendicularPosition.hidden = !showPerpendiculars || !imageSize;
+  if (!perpendicularPosition.hidden) {
+    const { width, height } = imageSize;
+    if (width === height) {
+      perpendicularPosition.replaceChildren(phrase(['直角の線は、', 'もう一方の対角線と重なります']));
     } else {
-      diagonalPosition.textContent =
-        `直角の線：長辺の端から${perpendicularHit(imageSize.width, imageSize.height).toFixed(1)}%`;
+      perpendicularPosition.replaceChildren(`直角の線：長辺の端から${perpendicularHit(width, height).toFixed(1)}%`);
+      // 正方形に近い（近い比率が 1:1）と、直角の線がもう一方の対角線のすぐ横に並び、二重線のように見える。その理由を一言添える
+      if (measureAspect(width, height).nearest?.name === '1:1') {
+        const note = phrase(['正方形に近いため、', '直角の線は', 'もう一方の対角線の', 'すぐ横を通ります。']);
+        note.className = 'readout-note';
+        perpendicularPosition.append(note);
+      }
     }
   }
 
@@ -76,7 +87,8 @@ function updateGrid() {
   applyLineStyle(lineLayer, settings);
   grid.render(settings);
   thirds.render(settings.thirds === 'on');
-  diagonals.render({ visible: showDiagonals, ...imageSize });
+  diagonals.render({ visible: settings.diagonals === 'on', ...imageSize });
+  perpendiculars.render({ visible: showPerpendiculars, ...imageSize });
 }
 
 // スライダーは動かしている間も反映する
