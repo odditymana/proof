@@ -426,6 +426,29 @@ p {
   font-size: 0.75rem;
 }
 
+/* 広い画面ではパネルを2列にし、画像と色の抽出結果を同時に見られるようにする。
+   左の列に「画像」「比率グリッド」、右の列に「色の抽出」（最後の欄）。
+   HTMLの順（＝Tabの順）と、左の列→右の列という見た目の順は一致する */
+@media (min-width: 1280px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) calc(30rem + var(--gap));
+  }
+
+  .panel {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    /* 右の列が高くなっても、余りは2行目に回し、「画像」と「比率グリッド」の間を空けない */
+    grid-template-rows: auto 1fr;
+    align-items: start;
+    gap: var(--gap);
+  }
+
+  .panel-section:last-child {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+}
+
 /* 画面幅が狭いときは縦に並べる */
 @media (max-width: 760px) {
   :root {
