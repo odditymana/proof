@@ -100,7 +100,7 @@ function selectColor(index) {
   }
   const color = palette.colors[index];
   const label = `${color.hex}（${formatPercent(color.ratio)}）`;
-  highlight.show(assignment, index);
+  highlight.show(assignment, index, color);
   // 縮小したときにだけ生まれた境目の色は、細かい割り当てには画素がないことがある。隠さずにそのまま伝える
   highlightStatus.textContent = assignment.indices.includes(index)
     ? `${label}の場所を強調表示しています。`
