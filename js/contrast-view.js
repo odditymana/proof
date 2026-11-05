@@ -4,7 +4,17 @@
 import { CRITERIA, hexContrast, formatRatio, parseHex } from './contrast.js';
 
 const HEX_OPTION = 'hex';
-const DEFAULT_INDEX = { fg: 1, bg: 0 }; // 初期値：文字＝色リストの2番目、背景＝1番目
+
+// 初期値：背景＝色リストの1番目、文字＝1番目とのコントラスト比がいちばん大きい色（同じ比なら上にある色）。
+// カラー写真では1番目と2番目が似た色になりやすいため
+function defaultIndex(name, colors) {
+  if (name === 'bg' || colors.length < 2) return 0;
+  let best = 1;
+  for (let i = 2; i < colors.length; i++) {
+    if (hexContrast(colors[i].hex, colors[0].hex) > hexContrast(colors[best].hex, colors[0].hex)) best = i;
+  }
+  return best;
+}
 
 export function createContrastView(root) {
   const result = root.querySelector('.contrast-result');
@@ -100,9 +110,7 @@ export function createContrastView(root) {
         const keepHex = isHex(slot) && slot.input.value.trim() !== '';
         const options = colors.map((color, index) => new Option(color.hex, index));
         slot.select.replaceChildren(...options, new Option('HEXで入力', HEX_OPTION));
-        slot.select.value = keepHex || colors.length === 0
-          ? HEX_OPTION
-          : Math.min(DEFAULT_INDEX[slot.name], colors.length - 1);
+        slot.select.value = keepHex || colors.length === 0 ? HEX_OPTION : defaultIndex(slot.name, colors);
         if (!keepHex) clearError(slot);
       }
       update();
