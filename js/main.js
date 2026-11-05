@@ -7,6 +7,7 @@ import { applyLineStyle } from './lines.js';
 import { createGrid, shortPart } from './grid.js';
 import { createThirds } from './thirds.js';
 import { createDiagonals, createPerpendiculars, perpendicularHit } from './diagonals.js';
+import { createGoldenSpiral, spiralGeometry } from './golden-spiral.js';
 import { samplePixels, sampleDetailPixels, medianCut, assignColors } from './palette.js';
 import { renderPalette, setSelected, formatPercent } from './palette-view.js';
 import { createHighlight } from './highlight.js';
@@ -31,10 +32,14 @@ const grid = createGrid(overlay.addLayer('grid', lineLayer));
 const thirds = createThirds(overlay.addLayer('thirds', lineLayer));
 const diagonals = createDiagonals(overlay.addLayer('diagonals', lineLayer));
 const perpendiculars = createPerpendiculars(overlay.addLayer('perpendiculars', lineLayer));
+const spiral = createGoldenSpiral(overlay.addLayer('spiral', lineLayer));
 const gridForm = document.querySelector('#grid-form');
 const gridSide = document.querySelector('#grid-side');
 const gridPosition = document.querySelector('#grid-position');
 const perpendicularPosition = document.querySelector('#perpendicular-position');
+const spiralCorner = document.querySelector('#grid-spiral-corner');
+const spiralPosition = document.querySelector('#spiral-position');
+const CORNER_NAMES = { tl: '左上', tr: '右上', bl: '左下', br: '右下' };
 const gridOpacity = document.querySelector('#grid-opacity');
 const gridOpacityValue = document.querySelector('#grid-opacity-value');
 const SIDE_NAMES = { left: '左', right: '右', top: '上', bottom: '下' };
@@ -82,6 +87,25 @@ function updateGrid() {
     }
   }
 
+  // 黄金螺旋：巻き始めの角の選択と、回る向き・中心の位置の表示
+  const showSpiral = settings.spiral === 'on';
+  spiralCorner.hidden = !showSpiral;
+  spiralPosition.hidden = !showSpiral || !imageSize;
+  if (!spiralPosition.hidden) {
+    const { width, height } = imageSize;
+    const { clockwise, pole } = spiralGeometry(width, height, settings.spiralCorner);
+    const line = (text) => {
+      const span = document.createElement('span');
+      span.className = 'readout-line';
+      span.textContent = text;
+      return span;
+    };
+    spiralPosition.replaceChildren(
+      line(`黄金螺旋：${CORNER_NAMES[settings.spiralCorner]}から${clockwise ? '時計回り' : '反時計回り'}`),
+      line(`中心：左端から${(pole[0] / width * 100).toFixed(1)}%・上端から${(pole[1] / height * 100).toFixed(1)}%`),
+    );
+  }
+
   gridOpacityValue.textContent = `${settings.opacity}%`;
   gridOpacity.setAttribute('aria-valuetext', `${settings.opacity}%`); // 読み上げで単位まで伝える
   applyLineStyle(lineLayer, settings);
@@ -89,6 +113,7 @@ function updateGrid() {
   thirds.render(settings.thirds === 'on');
   diagonals.render({ visible: settings.diagonals === 'on', ...imageSize });
   perpendiculars.render({ visible: showPerpendiculars, ...imageSize });
+  spiral.render({ visible: showSpiral, corner: settings.spiralCorner, ...imageSize });
 }
 
 // スライダーは動かしている間も反映する

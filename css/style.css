@@ -142,8 +142,9 @@ p {
   vector-effect: non-scaling-stroke;
 }
 
-.overlay [data-layer="grid"] {
+.overlay [data-layer="lines"] {
   stroke-width: 1px;
+  fill: none; /* 黄金螺旋の曲線を塗りつぶさない */
 }
 
 /* トンボ：各隅の点から、横線と縦線を外側へ伸ばす */
@@ -310,6 +311,11 @@ p {
 .readout {
   font-family: var(--mono);
   font-size: 0.8125rem;
+}
+
+/* 数値を行に分けて表示する */
+.readout-line {
+  display: block;
 }
 
 /* 数値の下に添える一言 */
