@@ -48,6 +48,16 @@ python3 -m http.server 8000
 # ブラウザで http://localhost:8000/ を開く
 ```
 
+## テスト
+
+計算の部分（縦横比、色の抽出、コントラスト比、HEX の読み取り、線と螺旋の位置）を、Node.js に標準で入っている `node:test` で確かめています。ライブラリは使いません（Node.js 22 以降）。
+
+```sh
+npm test
+```
+
+main への push と pull request のたびに、GitHub Actions で自動で走ります。
+
 ## 構成
 
 HTML・CSS・JavaScript だけで作っています（フレームワーク・ライブラリなし）。
@@ -70,7 +80,10 @@ js/
   highlight.js     色の場所の強調表示
   contrast.js      コントラスト比の計算と、HEX の読み取り
   contrast-view.js コントラスト比の表示
+tests/             計算のテスト（node:test）
 test-images/       動作確認用の自作画像
+package.json       テストを動かすコマンド（依存なし）
+.github/workflows/test.yml  GitHub Actions でテストを走らせる設定
 ```
 
 ## 公開
