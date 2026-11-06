@@ -36,134 +36,143 @@
     <aside class="panel" aria-label="計測と表示の設定">
       <!-- 広い画面では左右2列。HTMLの順（＝Tabの順）は、左の列→右の列 -->
       <div class="panel-column">
-      <section class="panel-section" aria-labelledby="h-image">
-        <h2 id="h-image" class="label">画像</h2>
-        <button type="button" id="file-button" class="button">ファイルを選ぶ</button>
-        <input type="file" id="file-input" accept="image/*" hidden>
-        <dl id="image-info" class="info" hidden>
-          <dt>ファイル</dt><dd data-info="name"></dd>
-          <dt>サイズ</dt><dd data-info="size"></dd>
-          <dt>縦横比</dt><dd data-info="aspect"></dd>
-          <dt>近い比率</dt><dd data-info="nearest"></dd>
-        </dl>
+      <section class="panel-section" aria-labelledby="h-image" data-section="image">
+        <h2 id="h-image" class="label section-heading"><button type="button" class="section-toggle" aria-expanded="true" aria-controls="section-image">画像<span class="section-mark" aria-hidden="true"></span></button></h2>
+        <div id="section-image" class="section-body">
+          <button type="button" id="file-button" class="button">ファイルを選ぶ</button>
+          <input type="file" id="file-input" accept="image/*" hidden>
+          <dl id="image-info" class="info" hidden>
+            <dt>ファイル</dt><dd data-info="name"></dd>
+            <dt>サイズ</dt><dd data-info="size"></dd>
+            <dt>縦横比</dt><dd data-info="aspect"></dd>
+            <dt>近い比率</dt><dd data-info="nearest"></dd>
+          </dl>
+        </div>
+        <!-- 欄を閉じていても、読み込みのエラーが伝わるよう、開閉する部分の外に置く -->
         <p id="status" class="status" role="status"></p>
       </section>
 
-      <section class="panel-section" aria-labelledby="h-grid">
-        <h2 id="h-grid" class="label">重ねる線</h2>
-        <form id="grid-form" class="controls">
-          <fieldset>
-            <legend>比率</legend>
-            <label><input type="radio" name="type" value="none">なし</label>
-            <label><input type="radio" name="type" value="golden">黄金比</label>
-            <label><input type="radio" name="type" value="silver" checked>白銀比</label>
-          </fieldset>
-          <fieldset id="grid-mode">
-            <legend>モード</legend>
-            <label><input type="radio" name="mode" value="both" checked>両側</label>
-            <label><input type="radio" name="mode" value="one">片側</label>
-          </fieldset>
-          <fieldset id="grid-side" hidden>
-            <legend>基準の辺</legend>
-            <label><input type="radio" name="side" value="left" checked>左</label>
-            <label><input type="radio" name="side" value="right">右</label>
-            <label><input type="radio" name="side" value="top">上</label>
-            <label><input type="radio" name="side" value="bottom">下</label>
-          </fieldset>
-          <output id="grid-position" class="readout" for="grid-side" hidden></output>
-          <fieldset>
-            <legend>補助線</legend>
-            <label><input type="checkbox" name="thirds" id="grid-thirds">三分割</label>
-            <label><input type="checkbox" name="diagonals" id="grid-diagonals">対角線</label>
-            <label><input type="checkbox" name="perpendiculars" id="grid-perpendiculars">直角の線</label>
-          </fieldset>
-          <output id="perpendicular-position" class="readout" for="grid-perpendiculars" hidden></output>
-          <fieldset id="grid-spiral">
-            <legend>螺旋</legend>
-            <label><input type="radio" name="spiral" value="none" checked>なし</label>
-            <label><input type="radio" name="spiral" value="golden">黄金比</label>
-            <label><input type="radio" name="spiral" value="silver">白銀比</label>
-          </fieldset>
-          <fieldset id="grid-spiral-corner" hidden>
-            <legend>巻き始めの角</legend>
-            <label><input type="radio" name="spiralCorner" value="tl">左上</label>
-            <label><input type="radio" name="spiralCorner" value="tr">右上</label>
-            <label><input type="radio" name="spiralCorner" value="bl" checked>左下</label>
-            <label><input type="radio" name="spiralCorner" value="br">右下</label>
-          </fieldset>
-          <output id="spiral-position" class="readout" for="grid-spiral grid-spiral-corner" hidden></output>
-          <fieldset>
-            <legend>線の色</legend>
-            <label><input type="radio" name="color" value="white" checked>白</label>
-            <label><input type="radio" name="color" value="black">黒</label>
-            <label><input type="radio" name="color" value="magenta">マゼンタ</label>
-          </fieldset>
-          <div class="range">
-            <label for="grid-opacity">不透明度</label>
-            <input type="range" id="grid-opacity" name="opacity" min="10" max="100" step="10" value="100" aria-valuetext="100%">
-            <output id="grid-opacity-value" class="readout" for="grid-opacity">100%</output>
-          </div>
-        </form>
+      <section class="panel-section" aria-labelledby="h-grid" data-section="lines">
+        <h2 id="h-grid" class="label section-heading"><button type="button" class="section-toggle" aria-expanded="true" aria-controls="section-lines">重ねる線<span class="section-mark" aria-hidden="true"></span></button></h2>
+        <div id="section-lines" class="section-body">
+          <form id="grid-form" class="controls">
+            <fieldset>
+              <legend>比率</legend>
+              <label><input type="radio" name="type" value="none">なし</label>
+              <label><input type="radio" name="type" value="golden">黄金比</label>
+              <label><input type="radio" name="type" value="silver" checked>白銀比</label>
+            </fieldset>
+            <fieldset id="grid-mode">
+              <legend>モード</legend>
+              <label><input type="radio" name="mode" value="both" checked>両側</label>
+              <label><input type="radio" name="mode" value="one">片側</label>
+            </fieldset>
+            <fieldset id="grid-side" hidden>
+              <legend>基準の辺</legend>
+              <label><input type="radio" name="side" value="left" checked>左</label>
+              <label><input type="radio" name="side" value="right">右</label>
+              <label><input type="radio" name="side" value="top">上</label>
+              <label><input type="radio" name="side" value="bottom">下</label>
+            </fieldset>
+            <output id="grid-position" class="readout" for="grid-side" hidden></output>
+            <fieldset>
+              <legend>補助線</legend>
+              <label><input type="checkbox" name="thirds" id="grid-thirds">三分割</label>
+              <label><input type="checkbox" name="diagonals" id="grid-diagonals">対角線</label>
+              <label><input type="checkbox" name="perpendiculars" id="grid-perpendiculars">直角の線</label>
+            </fieldset>
+            <output id="perpendicular-position" class="readout" for="grid-perpendiculars" hidden></output>
+            <fieldset id="grid-spiral">
+              <legend>螺旋</legend>
+              <label><input type="radio" name="spiral" value="none" checked>なし</label>
+              <label><input type="radio" name="spiral" value="golden">黄金比</label>
+              <label><input type="radio" name="spiral" value="silver">白銀比</label>
+            </fieldset>
+            <fieldset id="grid-spiral-corner" hidden>
+              <legend>巻き始めの角</legend>
+              <label><input type="radio" name="spiralCorner" value="tl">左上</label>
+              <label><input type="radio" name="spiralCorner" value="tr">右上</label>
+              <label><input type="radio" name="spiralCorner" value="bl" checked>左下</label>
+              <label><input type="radio" name="spiralCorner" value="br">右下</label>
+            </fieldset>
+            <output id="spiral-position" class="readout" for="grid-spiral grid-spiral-corner" hidden></output>
+            <fieldset>
+              <legend>線の色</legend>
+              <label><input type="radio" name="color" value="white" checked>白</label>
+              <label><input type="radio" name="color" value="black">黒</label>
+              <label><input type="radio" name="color" value="magenta">マゼンタ</label>
+            </fieldset>
+            <div class="range">
+              <label for="grid-opacity">不透明度</label>
+              <input type="range" id="grid-opacity" name="opacity" min="10" max="100" step="10" value="100" aria-valuetext="100%">
+              <output id="grid-opacity-value" class="readout" for="grid-opacity">100%</output>
+            </div>
+          </form>
+        </div>
       </section>
       </div>
 
       <div class="panel-column">
-      <section class="panel-section" aria-labelledby="h-palette">
-        <h2 id="h-palette" class="label">色の抽出</h2>
-        <form id="palette-form" class="controls">
-          <div class="range">
-            <label for="palette-count">色数</label>
-            <input type="range" id="palette-count" name="count" min="3" max="8" step="1" value="5" aria-valuetext="5色">
-            <output id="palette-count-value" class="readout" for="palette-count">5色</output>
+      <section class="panel-section" aria-labelledby="h-palette" data-section="palette">
+        <h2 id="h-palette" class="label section-heading"><button type="button" class="section-toggle" aria-expanded="true" aria-controls="section-palette">色の抽出<span class="section-mark" aria-hidden="true"></span></button></h2>
+        <div id="section-palette" class="section-body">
+          <form id="palette-form" class="controls">
+            <div class="range">
+              <label for="palette-count">色数</label>
+              <input type="range" id="palette-count" name="count" min="3" max="8" step="1" value="5" aria-valuetext="5色">
+              <output id="palette-count-value" class="readout" for="palette-count">5色</output>
+            </div>
+          </form>
+          <p id="palette-empty" class="placeholder">画像を読み込むと表示されます</p>
+          <div id="palette-result" class="palette" hidden>
+            <div class="palette-bar" aria-hidden="true"></div>
+            <ol class="palette-list" aria-label="抽出した色（割合の多い順）。押すと画像上でその色の場所を強調表示"></ol>
+            <p id="highlight-status" class="palette-note" role="status"></p>
+            <dl class="info palette-top">
+              <dt></dt><dd></dd>
+            </dl>
+            <p id="palette-note" class="palette-note" role="status"></p>
           </div>
-        </form>
-        <p id="palette-empty" class="placeholder">画像を読み込むと表示されます</p>
-        <div id="palette-result" class="palette" hidden>
-          <div class="palette-bar" aria-hidden="true"></div>
-          <ol class="palette-list" aria-label="抽出した色（割合の多い順）。押すと画像上でその色の場所を強調表示"></ol>
-          <p id="highlight-status" class="palette-note" role="status"></p>
-          <dl class="info palette-top">
-            <dt></dt><dd></dd>
-          </dl>
-          <p id="palette-note" class="palette-note" role="status"></p>
         </div>
       </section>
 
-      <section class="panel-section" aria-labelledby="h-contrast">
-        <h2 id="h-contrast" class="label">コントラスト比</h2>
-        <div class="contrast">
-          <div class="contrast-slot" data-slot="fg">
-            <label for="contrast-fg-select">文字の色</label>
-            <div class="contrast-pick">
-              <span class="swatch" aria-hidden="true"></span>
-              <select id="contrast-fg-select"></select>
+      <section class="panel-section" aria-labelledby="h-contrast" data-section="contrast">
+        <h2 id="h-contrast" class="label section-heading"><button type="button" class="section-toggle" aria-expanded="true" aria-controls="section-contrast">コントラスト比<span class="section-mark" aria-hidden="true"></span></button></h2>
+        <div id="section-contrast" class="section-body">
+          <div class="contrast">
+            <div class="contrast-slot" data-slot="fg">
+              <label for="contrast-fg-select">文字の色</label>
+              <div class="contrast-pick">
+                <span class="swatch" aria-hidden="true"></span>
+                <select id="contrast-fg-select"></select>
+              </div>
+              <input type="text" id="contrast-fg-hex" class="hex-input" aria-label="文字の色（HEX）"
+                aria-describedby="contrast-fg-error" autocomplete="off" spellcheck="false" placeholder="#1F3A5F" hidden>
+              <p id="contrast-fg-error" class="field-error"></p>
             </div>
-            <input type="text" id="contrast-fg-hex" class="hex-input" aria-label="文字の色（HEX）"
-              aria-describedby="contrast-fg-error" autocomplete="off" spellcheck="false" placeholder="#1F3A5F" hidden>
-            <p id="contrast-fg-error" class="field-error"></p>
-          </div>
-          <div class="contrast-slot" data-slot="bg">
-            <label for="contrast-bg-select">背景の色</label>
-            <div class="contrast-pick">
-              <span class="swatch" aria-hidden="true"></span>
-              <select id="contrast-bg-select"></select>
+            <div class="contrast-slot" data-slot="bg">
+              <label for="contrast-bg-select">背景の色</label>
+              <div class="contrast-pick">
+                <span class="swatch" aria-hidden="true"></span>
+                <select id="contrast-bg-select"></select>
+              </div>
+              <input type="text" id="contrast-bg-hex" class="hex-input" aria-label="背景の色（HEX）"
+                aria-describedby="contrast-bg-error" autocomplete="off" spellcheck="false" placeholder="#E8E2D6" hidden>
+              <p id="contrast-bg-error" class="field-error"></p>
             </div>
-            <input type="text" id="contrast-bg-hex" class="hex-input" aria-label="背景の色（HEX）"
-              aria-describedby="contrast-bg-error" autocomplete="off" spellcheck="false" placeholder="#E8E2D6" hidden>
-            <p id="contrast-bg-error" class="field-error"></p>
-          </div>
-          <div id="contrast-result" class="contrast-result" hidden>
-            <p class="contrast-sample" aria-hidden="true">文字の見本 Aa あア</p>
-            <p id="contrast-ratio" class="readout" role="status"></p>
-            <table class="contrast-table" aria-label="WCAG の基準ごとに、基準の値と、それを満たすかどうか">
-              <tbody>
-                <tr><th scope="row">AA 通常の文字</th><td>4.5</td><td data-level="AA" data-size="normal"></td></tr>
-                <tr><th scope="row">AA 大きな文字</th><td>3</td><td data-level="AA" data-size="large"></td></tr>
-                <tr><th scope="row">AAA 通常の文字</th><td>7</td><td data-level="AAA" data-size="normal"></td></tr>
-                <tr><th scope="row">AAA 大きな文字</th><td>4.5</td><td data-level="AAA" data-size="large"></td></tr>
-              </tbody>
-            </table>
-            <p class="contrast-note"><span>大きな文字：18pt（24px）以上</span><span class="contrast-note-indent">太字は 14pt（約18.7px）以上</span></p>
+            <div id="contrast-result" class="contrast-result" hidden>
+              <p class="contrast-sample" aria-hidden="true">文字の見本 Aa あア</p>
+              <p id="contrast-ratio" class="readout" role="status"></p>
+              <table class="contrast-table" aria-label="WCAG の基準ごとに、基準の値と、それを満たすかどうか">
+                <tbody>
+                  <tr><th scope="row">AA 通常の文字</th><td>4.5</td><td data-level="AA" data-size="normal"></td></tr>
+                  <tr><th scope="row">AA 大きな文字</th><td>3</td><td data-level="AA" data-size="large"></td></tr>
+                  <tr><th scope="row">AAA 通常の文字</th><td>7</td><td data-level="AAA" data-size="normal"></td></tr>
+                  <tr><th scope="row">AAA 大きな文字</th><td>4.5</td><td data-level="AAA" data-size="large"></td></tr>
+                </tbody>
+              </table>
+              <p class="contrast-note"><span>大きな文字：18pt（24px）以上</span><span class="contrast-note-indent">太字は 14pt（約18.7px）以上</span></p>
+            </div>
           </div>
         </div>
       </section>

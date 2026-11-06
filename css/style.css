@@ -218,6 +218,37 @@ p {
   letter-spacing: 0.08em;
 }
 
+/* 欄の折りたたみ：見出しの行全体が開閉のボタン。見た目は今の見出しのまま、右端に「−」「＋」だけを置く。
+   押せる範囲は上下に少し広げる（見出しの位置は変えない） */
+.section-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  width: 100%;
+  margin: -0.25rem 0;
+  padding: 0.25rem 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.section-toggle[aria-expanded="true"] .section-mark::before {
+  content: "−";
+}
+
+.section-toggle[aria-expanded="false"] .section-mark::before {
+  content: "＋";
+}
+
+/* 閉じた欄は、見出しの下の余白も詰める */
+.panel-section:has(> .section-body[hidden]) .section-heading {
+  margin-bottom: 0;
+}
+
 .placeholder {
   margin-top: 0.75rem;
   font-family: var(--mono);

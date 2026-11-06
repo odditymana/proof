@@ -13,6 +13,7 @@ import { samplePixels, sampleDetailPixels, medianCut, assignColors, measureShare
 import { renderPalette, setSelected } from './palette-view.js';
 import { createHighlight, highlightMessage } from './highlight.js';
 import { createContrastView } from './contrast-view.js';
+import { initSections } from './sections.js';
 
 const stage = document.querySelector('.stage');
 const dropButton = document.querySelector('#drop-button');
@@ -21,6 +22,9 @@ const sheetImage = sheet.querySelector('.sheet-image');
 const imageInfo = document.querySelector('#image-info');
 const status = document.querySelector('#status');
 const fileButton = document.querySelector('#file-button');
+
+// パネルの欄の折りたたみ（開閉の状態はブラウザの中だけに覚える）
+initSections(document.querySelector('.panel'));
 
 const overlay = createOverlay(sheetImage);
 
