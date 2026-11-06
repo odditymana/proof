@@ -1,5 +1,7 @@
 # PROOF
 
+[![テスト](https://github.com/odditymana/proof/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/odditymana/proof/actions/workflows/test.yml)
+
 画像の構図と配色を、自分の目で確かめるための Web アプリです。
 
 **→ [https://odditymana.github.io/proof/](https://odditymana.github.io/proof/)**
