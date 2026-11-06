@@ -23,9 +23,25 @@ test('コントラスト比は、2色の順番によらない', () => {
 test('表示は小数2桁で切り捨て（4.496 を「4.50」と見せない）', () => {
   assert.equal(formatRatio(4.499), '4.49');
   assert.equal(formatRatio(4.496), '4.49');
+  assert.equal(formatRatio(4.4999999999999), '4.49');
+  assert.equal(formatRatio(6.6449), '6.64');
   assert.equal(formatRatio(4.5), '4.50');
+  assert.equal(formatRatio(4.56), '4.56');
+});
+
+test('整数は小数2桁をつけて表示する', () => {
   assert.equal(formatRatio(1), '1.00');
+  assert.equal(formatRatio(5), '5.00');
   assert.equal(formatRatio(21), '21.00');
+});
+
+test('ちょうど小数2桁の値は、小数の誤差で切り下がらない（1.00〜21.00 を 0.01 刻みで全部）', () => {
+  // 4.56×100＝455.99999… のように、×100 すると誤差で少し小さくなる値がある
+  assert.ok(4.56 * 100 < 456);
+  for (let i = 100; i <= 2100; i++) {
+    const expected = `${Math.floor(i / 100)}.${String(i % 100).padStart(2, '0')}`;
+    assert.equal(formatRatio(i / 100), expected);
+  }
 });
 
 test('WCAG の基準の値', () => {

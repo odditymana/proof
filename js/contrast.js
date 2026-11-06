@@ -26,9 +26,12 @@ export function hexContrast(hexA, hexB) {
   return contrastRatio(luminance(...toRgb(hexA)), luminance(...toRgb(hexB)));
 }
 
-// 表示用：判定は丸める前の値で行い、表示は小数2桁で切り捨てる（4.496 を「4.50」と見せないため）
+// 表示用：判定は丸める前の値で行い、表示は小数2桁で切り捨てる（4.496 を「4.50」と見せないため）。
+// ×100 してから切り捨てると、4.56×100＝455.99999… のような小数の誤差で切り下がるので、
+// 数を文字にしてから小数2桁で切る（コントラスト比は1〜21なので、1e-7 のような指数の表記にはならない）
 export function formatRatio(ratio) {
-  return (Math.floor(ratio * 100) / 100).toFixed(2);
+  const [whole, fraction = ''] = String(ratio).split('.');
+  return `${whole}.${fraction.padEnd(2, '0').slice(0, 2)}`;
 }
 
 // HEX の入力を読み取る。「#」あり・なし、3桁・6桁、大文字・小文字、前後の空白を受け付け、
