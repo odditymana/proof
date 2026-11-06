@@ -9,7 +9,7 @@ import { createThirds } from './thirds.js';
 import { createDiagonals, createPerpendiculars, perpendicularReadout } from './diagonals.js';
 import { createSpiral, spiralReadout } from './spiral.js';
 import { visibleRows } from './line-panel.js';
-import { samplePixels, sampleDetailPixels, medianCut, assignColors } from './palette.js';
+import { samplePixels, sampleDetailPixels, medianCut, assignColors, measureShares } from './palette.js';
 import { renderPalette, setSelected } from './palette-view.js';
 import { createHighlight, highlightMessage } from './highlight.js';
 import { createContrastView } from './contrast-view.js';
@@ -140,8 +140,9 @@ function updatePalette() {
   if (!pixels || count === paletteCountShown) return;
   paletteCountShown = count;
 
-  palette = medianCut(pixels, count);
-  assignment = assignColors(detailPixels, palette);
+  // 色は幅100pxで決め、割合は強調表示と同じ細かい振り分けで数え直す
+  const coarse = medianCut(pixels, count);
+  ({ palette, assignment } = measureShares(coarse, assignColors(detailPixels, coarse)));
   renderPalette(paletteParts, palette, count);
   contrastView.setColors(palette.colors);
   paletteEmpty.hidden = true;
@@ -161,7 +162,7 @@ function selectColor(index) {
   }
   const color = palette.colors[index];
   highlight.show(assignment, index, color);
-  highlightStatus.textContent = highlightMessage(color, assignment.indices.includes(index));
+  highlightStatus.textContent = highlightMessage(color, color.count > 0);
 }
 
 paletteForm.addEventListener('input', updatePalette);

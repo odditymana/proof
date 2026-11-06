@@ -104,3 +104,16 @@ test('欄の初期値：背景は1番目、文字は1番目とのコントラス
   assert.equal(defaultIndex('fg', colors('#FFFFFF')), 0);
   assert.equal(defaultIndex('fg', []), 0);
 });
+
+test('欄の初期値：文字の色の候補から 0% の色を外す', () => {
+  const colors = (...pairs) => pairs.map(([hex, ratio]) => ({ hex, ratio }));
+  // 0% の黒は、白とのコントラスト比がいちばん大きくても選ばない
+  assert.equal(defaultIndex('fg', colors(['#FFFFFF', 0.6], ['#777777', 0.4], ['#000000', 0])), 1);
+  assert.equal(defaultIndex('fg', colors(['#FFFFFF', 0.6], ['#777777', 0.3], ['#333333', 0.1], ['#000000', 0])), 2);
+  // <0.1% でも画素があれば候補に入る
+  assert.equal(defaultIndex('fg', colors(['#FFFFFF', 0.9], ['#777777', 0.0995], ['#000000', 0.0005])), 2);
+  // 外すと候補がなくなるときは、外さずに選ぶ
+  assert.equal(defaultIndex('fg', colors(['#FFFFFF', 1], ['#777777', 0], ['#000000', 0])), 2);
+  // 背景は今までどおり1番目
+  assert.equal(defaultIndex('bg', colors(['#FFFFFF', 0.6], ['#000000', 0])), 0);
+});

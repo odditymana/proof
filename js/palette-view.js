@@ -41,9 +41,10 @@ export function renderPalette({ bar, list, top, note }, { colors }, requestedCou
   note.textContent = paletteNote(colors, requestedCount);
 }
 
-// 上位3色（2色しかなければ2色）の合計を100としたときの比。1色以下なら null
+// 上位3色（2色しかなければ2色）の合計を100としたときの比。1色以下なら null。
+// 細かく数えて0画素の色（縮小して計測したときだけ現れた色）は数に入れない
 export function topRatio(colors) {
-  const leaders = colors.slice(0, 3);
+  const leaders = colors.filter((color) => color.ratio > 0).slice(0, 3);
   if (leaders.length < 2) return null;
   const sum = leaders.reduce((total, color) => total + color.ratio, 0);
   return { count: leaders.length, parts: leaders.map((color) => Math.round(color.ratio / sum * 100)) };
@@ -52,8 +53,13 @@ export function topRatio(colors) {
 // 色の一覧の下に出す一言（なければ空の文字）
 export function paletteNote(colors, requestedCount) {
   if (colors.length === 0) return '不透明な画素がありませんでした。';
-  if (colors.length < requestedCount) return `見分けられる色は${colors.length}色でした。`;
-  return '';
+  const notes = [];
+  if (colors.length < requestedCount) notes.push(`見分けられる色は${colors.length}色でした。`);
+  // 原因（色の境目のにじみ・色のかたまりが分かれたなど）は1つに決まらないので、言い切らない
+  if (colors.some((color) => color.ratio === 0)) {
+    notes.push('0% の色は、縮小して計測したときだけ現れた色です（元の解像度の画像には当てはまる画素がありません）。');
+  }
+  return notes.join('');
 }
 
 // 選んでいる色のボタンだけを「押された状態」にする（index が null なら全部解除）
@@ -63,6 +69,8 @@ export function setSelected(list, index) {
   }
 }
 
+// 0 は「0%」、0 より大きく0.1%未満は「<0.1%」（「1画素もない」と「わずかにある」を分ける）
 export function formatPercent(ratio) {
+  if (ratio === 0) return '0%';
   return ratio < 0.001 ? '<0.1%' : `${(ratio * 100).toFixed(1)}%`;
 }

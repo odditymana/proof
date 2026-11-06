@@ -6,12 +6,16 @@ import { meetsCriteria, hexContrast, formatRatio, parseHex } from './contrast.js
 const HEX_OPTION = 'hex';
 
 // 初期値：背景＝色リストの1番目、文字＝1番目とのコントラスト比がいちばん大きい色（同じ比なら上にある色）。
-// カラー写真では1番目と2番目が似た色になりやすいため
+// カラー写真では1番目と2番目が似た色になりやすいため。
+// 文字の色の候補から、0% の色（元の解像度の画像には画素がない色）は外す。外すと候補がなくなるときは、外さずに選ぶ
 export function defaultIndex(name, colors) {
   if (name === 'bg' || colors.length < 2) return 0;
-  let best = 1;
-  for (let i = 2; i < colors.length; i++) {
-    if (hexContrast(colors[i].hex, colors[0].hex) > hexContrast(colors[best].hex, colors[0].hex)) best = i;
+  const others = colors.map((_, index) => index).slice(1);
+  const present = others.filter((index) => colors[index].ratio !== 0);
+  const candidates = present.length ? present : others;
+  let best = candidates[0];
+  for (const index of candidates.slice(1)) {
+    if (hexContrast(colors[index].hex, colors[0].hex) > hexContrast(colors[best].hex, colors[0].hex)) best = index;
   }
   return best;
 }

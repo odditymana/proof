@@ -1,9 +1,10 @@
-// 色の抽出（メディアンカット）：同じ入力なら毎回同じ結果になること、透明な画素の除外、分けない箱、同点の決まり。
+// 色の抽出（メディアンカット）：同じ入力なら毎回同じ結果になること、透明な画素の除外、分けない箱、同点の決まり、
+// 一覧の割合を細かい振り分けで数え直すこと。
 // 画像の縮小（canvas）はブラウザの機能なので、ここでは画素のデータを自作して渡す。
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { medianCut, assignColors, TRANSPARENT } from '../js/palette.js';
+import { medianCut, assignColors, measureShares, TRANSPARENT } from '../js/palette.js';
 
 // 画素の一覧 [[r, g, b, a], …] から、canvas の getImageData と同じ形のデータを作る
 function image(pixels, width = pixels.length) {
@@ -116,4 +117,85 @@ test('すべて透明な画像では、色は0個', () => {
   assert.deepEqual(palette.colors, []);
   assert.equal(palette.rules, null);
   assert.ok(assignColors(transparent, palette).indices.every((i) => i === TRANSPARENT));
+});
+
+// 粗い画像（幅100px相当）で色を決め、細かい画像（長辺1000px相当）で数え直す
+function measure(coarsePixels, detailPixels, count) {
+  const coarse = image(coarsePixels);
+  const detail = image(detailPixels);
+  const palette = medianCut(coarse, count);
+  return { coarse, detail, palette, measured: measureShares(palette, assignColors(detail, palette)) };
+}
+
+const RED = [200, 40, 40];
+const BLUE = [40, 40, 200];
+const MIX = [120, 40, 120]; // 縮小したときだけ現れる、境目の色に見立てる
+
+test('数え直し：割合は細かい振り分けで数え、多い順に並べ直す。HEX は変えない', () => {
+  const { palette, measured } = measure(
+    [...repeat(RED, 5), ...repeat(BLUE, 3), ...repeat(MIX, 2)],
+    [...repeat(RED, 20), ...repeat(BLUE, 60), [0, 0, 0, 0], [0, 0, 0, 0]],
+    3,
+  );
+  assert.deepEqual(palette.colors.map((c) => c.hex), ['#C82828', '#2828C8', '#782878']);
+  const { colors, total } = measured.palette;
+  assert.equal(total, 80); // 透明な画素は数えない
+  assert.deepEqual(colors.map(({ hex, count, ratio }) => [hex, count, ratio]), [
+    ['#2828C8', 60, 0.75], ['#C82828', 20, 0.25], ['#782878', 0, 0],
+  ]);
+});
+
+test('数え直し：番号を付け直したあとも、振り分け・分け方の記録・一覧の色がそろう', () => {
+  const { coarse, detail, palette, measured } = measure(
+    [...repeat(RED, 5), ...repeat(BLUE, 3), ...repeat(MIX, 2)],
+    [...repeat(MIX, 1), ...repeat(BLUE, 60), ...repeat(RED, 20), [9, 9, 9, 0]],
+    3,
+  );
+  const hexOf = (pixels, i) => '#' + [...pixels.data.slice(i * 4, i * 4 + 3)].map((v) => v.toString(16).padStart(2, '0')).join('').toUpperCase();
+  // 細かい振り分け：各画素の番号が指す色は、その画素の色
+  measured.assignment.indices.forEach((index, i) => {
+    if (index === TRANSPARENT) assert.equal(detail.data[i * 4 + 3], 0);
+    else assert.equal(measured.palette.colors[index].hex, hexOf(detail, i));
+  });
+  // 付け直した分け方の記録で振り分け直しても、同じ番号になる
+  assert.deepEqual(assignColors(detail, measured.palette).indices, measured.assignment.indices);
+  // 幅100pxの振り分けも、同じ番号に付け直されている
+  measured.palette.indices.forEach((index, i) => assert.equal(measured.palette.colors[index].hex, hexOf(coarse, i)));
+  // もとの結果は書き換えない
+  assert.deepEqual(palette.colors.map((c) => c.hex), ['#C82828', '#2828C8', '#782878']);
+});
+
+test('数え直し：画素数が同じ色は R→G→B の小さい順、0画素の色は最後', () => {
+  const GREEN = [40, 200, 40];
+  const { measured } = measure(
+    [...repeat(RED, 4), ...repeat(GREEN, 3), ...repeat(BLUE, 2), ...repeat(MIX, 1)],
+    [...repeat(RED, 10), ...repeat(BLUE, 10), ...repeat(GREEN, 30)],
+    4,
+  );
+  assert.deepEqual(measured.palette.colors.map((c) => [c.hex, c.count]), [
+    ['#28C828', 30], ['#2828C8', 10], ['#C82828', 10], ['#782878', 0],
+  ]);
+});
+
+test('数え直し：細かい画像がすべて透明なら、どの色も0画素', () => {
+  const { measured } = measure([...repeat(RED, 3), ...repeat(BLUE, 1)], repeat([0, 0, 0, 0], 4), 3);
+  assert.equal(measured.palette.total, 0);
+  assert.deepEqual(measured.palette.colors.map((c) => [c.hex, c.ratio]), [['#2828C8', 0], ['#C82828', 0]]);
+});
+
+test('数え直し：同じ入力なら、何度でもまったく同じ結果になる', () => {
+  for (const count of [3, 5, 8]) {
+    const run = () => {
+      const coarse = noisyImage(100, 70, [0, 30, 90, 91, 160, 230]);
+      const detail = noisyImage(1000, 70, [0, 30, 90, 91, 160, 230]);
+      const palette = medianCut(coarse, count);
+      return measureShares(palette, assignColors(detail, palette));
+    };
+    const a = run();
+    assert.deepEqual(a, run(), `色数${count}`);
+    const sum = a.palette.colors.reduce((total, c) => total + c.ratio, 0);
+    assert.ok(Math.abs(sum - 1) < 1e-12);
+    // 多い順に並んでいる
+    a.palette.colors.forEach((c, i) => i && assert.ok(a.palette.colors[i - 1].count >= c.count));
+  }
 });

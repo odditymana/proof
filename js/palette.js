@@ -40,6 +40,48 @@ export function assignColors({ width, height, data }, { rules }) {
   return { width, height, indices };
 }
 
+// 一覧の割合を、強調表示と同じ細かい振り分け（長辺1000px）で数え直す。
+// 幅100pxで数えると、縮小したときだけ現れる色（色の境目のにじみなど）の割合が実際より大きく出るため。
+// 色そのもの（HEX）と分け方は、幅100pxのメディアンカットで決めたまま変えない。
+// 並びは数え直した画素数の多い順、同じなら R→G→B の小さい順。並べ替えに合わせて、
+// 各画素の色の番号（palette.indices・assignment.indices）と分け方の記録（rules）の番号も付け直す。
+// 細かく数えて0画素の色も、隠さずに割合0として最後に残す
+export function measureShares(palette, assignment) {
+  const counts = new Array(palette.colors.length).fill(0);
+  let total = 0;
+  for (const index of assignment.indices) {
+    if (index === TRANSPARENT) continue;
+    counts[index]++;
+    total++;
+  }
+
+  const order = palette.colors.map((_, index) => index).sort((a, b) => {
+    const [ca, cb] = [palette.colors[a], palette.colors[b]];
+    return counts[b] - counts[a] || ca.r - cb.r || ca.g - cb.g || ca.b - cb.b;
+  });
+  const newIndex = [];
+  order.forEach((old, index) => { newIndex[old] = index; });
+  const renumber = (indices) => indices.map((index) => (index === TRANSPARENT ? TRANSPARENT : newIndex[index]));
+  const renumberRules = (node) => (node.below
+    ? { ...node, below: renumberRules(node.below), above: renumberRules(node.above) }
+    : { index: newIndex[node.index] });
+
+  return {
+    palette: {
+      ...palette,
+      total,
+      colors: order.map((old) => ({
+        ...palette.colors[old],
+        count: counts[old],
+        ratio: total ? counts[old] / total : 0,
+      })),
+      indices: renumber(palette.indices),
+      rules: palette.rules && renumberRules(palette.rules),
+    },
+    assignment: { ...assignment, indices: renumber(assignment.indices) },
+  };
+}
+
 function readPixels(image, width, height) {
   const canvas = document.createElement('canvas');
   canvas.width = width;
