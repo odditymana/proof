@@ -31,3 +31,15 @@ export function measureAspect(width, height) {
 
   return { value, orientation, nearest };
 }
+
+// 画像の情報の欄に出す文：大きさ、縦横比、近い比率
+export function imageInfoTexts(width, height) {
+  const { value, orientation, nearest } = measureAspect(width, height);
+  return {
+    size: `${width} × ${height} px`,
+    aspect: `1:${value.toFixed(3)}（${orientation}）`,
+    nearest: nearest
+      ? `${nearest.name}\n1:${nearest.value.toFixed(3)}　差 ${(nearest.diff * 100).toFixed(1)}%`
+      : '近い比率なし',
+  };
+}

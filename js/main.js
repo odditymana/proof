@@ -1,16 +1,17 @@
 // 各機能のモジュールをつなぐ入口。
 
 import { initImageLoader } from './image-loader.js';
-import { measureAspect } from './ratios.js';
+import { imageInfoTexts } from './ratios.js';
 import { createOverlay } from './overlay.js';
 import { applyLineStyle } from './lines.js';
-import { createGrid, shortPart } from './grid.js';
+import { createGrid, gridPositionText } from './grid.js';
 import { createThirds } from './thirds.js';
-import { createDiagonals, createPerpendiculars, perpendicularHit } from './diagonals.js';
-import { createSpiral, spiralGeometry } from './spiral.js';
+import { createDiagonals, createPerpendiculars, perpendicularReadout } from './diagonals.js';
+import { createSpiral, spiralReadout } from './spiral.js';
+import { visibleRows } from './line-panel.js';
 import { samplePixels, sampleDetailPixels, medianCut, assignColors } from './palette.js';
-import { renderPalette, setSelected, formatPercent } from './palette-view.js';
-import { createHighlight } from './highlight.js';
+import { renderPalette, setSelected } from './palette-view.js';
+import { createHighlight, highlightMessage } from './highlight.js';
 import { createContrastView } from './contrast-view.js';
 
 const stage = document.querySelector('.stage');
@@ -40,11 +41,8 @@ const gridPosition = document.querySelector('#grid-position');
 const perpendicularPosition = document.querySelector('#perpendicular-position');
 const spiralCorner = document.querySelector('#grid-spiral-corner');
 const spiralPosition = document.querySelector('#spiral-position');
-const CORNER_NAMES = { tl: '左上', tr: '右上', bl: '左下', br: '右下' };
-const SPIRAL_NAMES = { golden: '黄金螺旋', silver: '白銀比の螺旋' };
 const gridOpacity = document.querySelector('#grid-opacity');
 const gridOpacityValue = document.querySelector('#grid-opacity-value');
-const SIDE_NAMES = { left: '左', right: '右', top: '上', bottom: '下' };
 let imageSize = null; // 読み込んだ画像の画素数 { width, height }。対角線に直角な線の位置の計算に使う
 
 // 1行に収まらない文を、決めたかたまりの区切りでだけ折り返すようにする（「ます」だけが次の行に送られないように）
@@ -61,54 +59,42 @@ function phrase(parts) {
 
 function updateGrid() {
   const settings = Object.fromEntries(new FormData(gridForm));
-  const isOneSide = settings.mode === 'one';
-  // 比率が「なし」のときは、モードと基準の辺の段を隠す（選択は残るので、比率を選び直すと前の設定に戻る）
-  const hasRatio = settings.type !== 'none';
-  gridMode.hidden = !hasRatio;
-  gridSide.hidden = !hasRatio || !isOneSide;
+  // 使わない段は隠す（選択は残るので、選び直すと前の設定に戻る）
+  const rows = visibleRows(settings, Boolean(imageSize));
+  gridMode.hidden = !rows.mode;
+  gridSide.hidden = !rows.side;
+  gridPosition.hidden = !rows.gridPosition;
+  perpendicularPosition.hidden = !rows.perpendicularPosition;
+  spiralCorner.hidden = !rows.spiralCorner;
+  spiralPosition.hidden = !rows.spiralPosition;
 
   // 片側モードでは、線の位置を一言で表示する
-  gridPosition.hidden = !isOneSide || settings.type === 'none';
-  if (!gridPosition.hidden) {
-    gridPosition.textContent =
-      `${SIDE_NAMES[settings.side]}端から${shortPart(settings.type).toFixed(1)}%`;
-  }
+  if (rows.gridPosition) gridPosition.textContent = gridPositionText(settings);
 
   // 対角線に直角な線が長辺と交わる位置を、画像の画素数から計算して表示する
-  const showPerpendiculars = settings.perpendiculars === 'on';
-  perpendicularPosition.hidden = !showPerpendiculars || !imageSize;
-  if (!perpendicularPosition.hidden) {
-    const { width, height } = imageSize;
-    if (width === height) {
-      perpendicularPosition.replaceChildren(phrase(['直角の線は、', 'もう一方の対角線と重なります']));
+  if (rows.perpendicularPosition) {
+    const readout = perpendicularReadout(imageSize.width, imageSize.height);
+    if (readout.square) {
+      perpendicularPosition.replaceChildren(phrase(readout.parts));
     } else {
-      perpendicularPosition.replaceChildren(`直角の線：長辺の端から${perpendicularHit(width, height).toFixed(1)}%`);
-      // 正方形に近い（近い比率が 1:1）と、直角の線がもう一方の対角線のすぐ横に並び、二重線のように見える。その理由を一言添える
-      if (measureAspect(width, height).nearest?.name === '1:1') {
-        const note = phrase(['正方形に近いため、', '直角の線は', 'もう一方の対角線の', 'すぐ横を通ります。']);
+      perpendicularPosition.replaceChildren(readout.text);
+      if (readout.note) {
+        const note = phrase(readout.note);
         note.className = 'readout-note';
         perpendicularPosition.append(note);
       }
     }
   }
 
-  // 螺旋（黄金比・白銀比）：巻き始めの角の選択と、回る向き・中心の位置の表示
-  const showSpiral = settings.spiral !== 'none';
-  spiralCorner.hidden = !showSpiral;
-  spiralPosition.hidden = !showSpiral || !imageSize;
-  if (!spiralPosition.hidden) {
-    const { width, height } = imageSize;
-    const { clockwise, pole } = spiralGeometry(settings.spiral, width, height, settings.spiralCorner);
-    const line = (text) => {
+  // 螺旋（黄金比・白銀比）：回る向き・中心の位置を1行ずつ表示する
+  if (rows.spiralPosition) {
+    const lines = spiralReadout(settings.spiral, imageSize.width, imageSize.height, settings.spiralCorner);
+    spiralPosition.replaceChildren(...lines.map((text) => {
       const span = document.createElement('span');
       span.className = 'readout-line';
       span.textContent = text;
       return span;
-    };
-    spiralPosition.replaceChildren(
-      line(`${SPIRAL_NAMES[settings.spiral]}：${CORNER_NAMES[settings.spiralCorner]}から${clockwise ? '時計回り' : '反時計回り'}`),
-      line(`中心：左端から${(pole[0] / width * 100).toFixed(1)}%・上端から${(pole[1] / height * 100).toFixed(1)}%`),
-    );
+    }));
   }
 
   gridOpacityValue.textContent = `${settings.opacity}%`;
@@ -117,7 +103,7 @@ function updateGrid() {
   grid.render(settings);
   thirds.render(settings.thirds === 'on');
   diagonals.render({ visible: settings.diagonals === 'on', ...imageSize });
-  perpendiculars.render({ visible: showPerpendiculars, ...imageSize });
+  perpendiculars.render({ visible: settings.perpendiculars === 'on', ...imageSize });
   spiral.render({ kind: settings.spiral, corner: settings.spiralCorner, ...imageSize });
 }
 
@@ -174,12 +160,8 @@ function selectColor(index) {
     return;
   }
   const color = palette.colors[index];
-  const label = `${color.hex}（${formatPercent(color.ratio)}）`;
   highlight.show(assignment, index, color);
-  // 縮小したときにだけ生まれた境目の色は、細かい割り当てには画素がないことがある。隠さずにそのまま伝える
-  highlightStatus.textContent = assignment.indices.includes(index)
-    ? `${label}の場所を強調表示しています。`
-    : `${label}に当てはまる画素は、元の解像度の画像にはありません。縮小して計測したときに、色の境目から生まれた色です。`;
+  highlightStatus.textContent = highlightMessage(color, assignment.indices.includes(index));
 }
 
 paletteForm.addEventListener('input', updatePalette);
@@ -221,14 +203,10 @@ initImageLoader({
     sheet.hidden = false;
 
     imageInfo.querySelector('[data-info="name"]').textContent = name;
-    imageInfo.querySelector('[data-info="size"]').textContent = `${width} × ${height} px`;
-
-    const aspect = measureAspect(width, height);
-    imageInfo.querySelector('[data-info="aspect"]').textContent =
-      `1:${aspect.value.toFixed(3)}（${aspect.orientation}）`;
-    imageInfo.querySelector('[data-info="nearest"]').textContent = aspect.nearest
-      ? `${aspect.nearest.name}\n1:${aspect.nearest.value.toFixed(3)}　差 ${(aspect.nearest.diff * 100).toFixed(1)}%`
-      : '近い比率なし';
+    const info = imageInfoTexts(width, height);
+    imageInfo.querySelector('[data-info="size"]').textContent = info.size;
+    imageInfo.querySelector('[data-info="aspect"]').textContent = info.aspect;
+    imageInfo.querySelector('[data-info="nearest"]').textContent = info.nearest;
 
     imageInfo.hidden = false;
     status.textContent = '';

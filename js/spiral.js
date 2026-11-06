@@ -116,6 +116,18 @@ export function spiralGeometry(kind, width, height, corner) {
   };
 }
 
+const CORNER_NAMES = { tl: '左上', tr: '右上', bl: '左下', br: '右下' };
+const SPIRAL_NAMES = { golden: '黄金螺旋', silver: '白銀比の螺旋' };
+
+// パネルに出す2行の文：名前と巻き始めの角・回る向き、中心の位置（画像の左端・上端からの%）
+export function spiralReadout(kind, width, height, corner) {
+  const { clockwise, pole } = spiralGeometry(kind, width, height, corner);
+  return [
+    `${SPIRAL_NAMES[kind]}：${CORNER_NAMES[corner]}から${clockwise ? '時計回り' : '反時計回り'}`,
+    `中心：左端から${(pole[0] / width * 100).toFixed(1)}%・上端から${(pole[1] / height * 100).toFixed(1)}%`,
+  ];
+}
+
 // 重ねる表示に引くもの：線の一覧 [x1, y1, x2, y2]（長方形の枠4本、続いて分割線）と、螺旋の曲線（SVG の path の d）。
 // 座標は画像の幅・高さに対する%
 export function spiralDrawing(kind, width, height, corner) {

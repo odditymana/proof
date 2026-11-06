@@ -1,8 +1,8 @@
-// 縦横比の計測と、近い比率（±2%）の選び方。
+// 縦横比の計測と、近い比率（±2%）の選び方、画像の情報の欄に出す文。
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { GOLDEN, SILVER, measureAspect } from '../js/ratios.js';
+import { GOLDEN, SILVER, measureAspect, imageInfoTexts } from '../js/ratios.js';
 
 test('比率の定数', () => {
   assert.equal(GOLDEN.toFixed(6), '1.618034');
@@ -47,4 +47,24 @@ test('±2% の内側なら近い比率を出し、外側なら「なし」', () 
 
   assert.equal(measureAspect(1021, 1000).nearest, null); // 1:1 との差 2.1%
   assert.equal(measureAspect(1300, 1000).nearest, null); // 4:3 との差 2.5%
+});
+
+test('画像の情報の文：大きさ、縦横比、近い比率', () => {
+  assert.deepEqual(imageInfoTexts(1414, 1000), {
+    size: '1414 × 1000 px',
+    aspect: '1:1.414（横長）',
+    nearest: '白銀比（A判・B判）\n1:1.414　差 0.0%',
+  });
+  assert.deepEqual(imageInfoTexts(1000, 1618), {
+    size: '1000 × 1618 px',
+    aspect: '1:1.618（縦長）',
+    nearest: '黄金比\n1:1.618　差 0.0%',
+  });
+  assert.deepEqual(imageInfoTexts(800, 800), {
+    size: '800 × 800 px',
+    aspect: '1:1.000（正方形）',
+    nearest: '1:1\n1:1.000　差 0.0%',
+  });
+  assert.equal(imageInfoTexts(793, 800).nearest, '1:1\n1:1.000　差 0.9%');
+  assert.equal(imageInfoTexts(1300, 1000).nearest, '近い比率なし');
 });

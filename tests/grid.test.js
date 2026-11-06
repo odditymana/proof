@@ -1,8 +1,8 @@
-// 比率グリッド：短い部分の割合（長い部分：短い部分＝比率：1）と、引く線の一覧。
+// 比率グリッド：短い部分の割合（長い部分：短い部分＝比率：1）、引く線の一覧、線の位置の文。
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { shortPart, gridLines } from '../js/grid.js';
+import { shortPart, gridLines, gridPositionText } from '../js/grid.js';
 import { GOLDEN, SILVER } from '../js/ratios.js';
 
 test('短い部分と長い部分の位置', () => {
@@ -40,4 +40,16 @@ test('片側・下：下端から41.4%（上端から58.6%）に1本', () => {
   assert.equal(line[1].toFixed(1), '58.6');
   // 黄金比・片側・右：左端から61.8%
   assert.equal(gridLines({ type: 'golden', mode: 'one', side: 'right' })[0][0].toFixed(1), '61.8');
+});
+
+test('片側モードの線の位置の文：両側や比率が「なし」のときは出さない', () => {
+  const text = (type, side) => gridPositionText({ type, mode: 'one', side });
+  assert.equal(text('silver', 'left'), '左端から41.4%');
+  assert.equal(text('silver', 'right'), '右端から41.4%');
+  assert.equal(text('silver', 'top'), '上端から41.4%');
+  assert.equal(text('silver', 'bottom'), '下端から41.4%');
+  assert.equal(text('golden', 'left'), '左端から38.2%');
+  assert.equal(text('golden', 'bottom'), '下端から38.2%');
+  assert.equal(gridPositionText({ type: 'silver', mode: 'both', side: 'left' }), null);
+  assert.equal(gridPositionText({ type: 'none', mode: 'one', side: 'left' }), null);
 });

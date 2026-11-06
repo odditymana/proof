@@ -1,8 +1,8 @@
-// 対角線と直角の線：線の一覧と、直角の線が長辺と交わる位置（長辺の端から（短辺÷長辺）の2乗）。
+// 対角線と直角の線：線の一覧、直角の線が長辺と交わる位置（長辺の端から（短辺÷長辺）の2乗）と、その文。
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { perpendicularHit, diagonalLines, perpendicularLines } from '../js/diagonals.js';
+import { perpendicularHit, diagonalLines, perpendicularLines, perpendicularReadout } from '../js/diagonals.js';
 import { GOLDEN, SILVER } from '../js/ratios.js';
 
 test('白銀比の画像では50%、黄金比の画像では38.2%、正方形では100%', () => {
@@ -60,4 +60,23 @@ test('直角の線：横長・縦長・正方形に近い画像のどれでも�
       else assert.equal(x2, W - x1, `${W}×${H}`);
     }
   }
+});
+
+test('直角の線の位置の文：白銀比の画像で50.0%、黄金比の画像で38.2%（縦長でも同じ）', () => {
+  for (const [width, height, percent] of [[1414, 1000, '50.0'], [1000, 1414, '50.0'], [1618, 1000, '38.2'], [1000, 1618, '38.2']]) {
+    assert.deepEqual(perpendicularReadout(width, height), {
+      square: false, text: `直角の線：長辺の端から${percent}%`, note: null,
+    }, `${width}×${height}`);
+  }
+});
+
+test('直角の線の位置の文：正方形では、もう一方の対角線と重なる', () => {
+  assert.deepEqual(perpendicularReadout(800, 800), { square: true, parts: ['直角の線は、', 'もう一方の対角線と重なります'] });
+});
+
+test('直角の線の位置の文：正方形に近い（1:1 から±2%以内）ときだけ、理由を添える', () => {
+  const note = ['正方形に近いため、', '直角の線は', 'もう一方の対角線の', 'すぐ横を通ります。'];
+  assert.deepEqual(perpendicularReadout(793, 800), { square: false, text: '直角の線：長辺の端から98.3%', note });
+  assert.deepEqual(perpendicularReadout(1019, 1000).note, note); // 差 1.9%
+  assert.equal(perpendicularReadout(1021, 1000).note, null); // 差 2.1%
 });

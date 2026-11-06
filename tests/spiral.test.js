@@ -1,8 +1,8 @@
-// 螺旋（黄金比・白銀比）：当てはめる長方形、円弧のつながり、回る向き、中心の位置、重ねる表示への描き方。
+// 螺旋（黄金比・白銀比）：当てはめる長方形、円弧のつながり、回る向き、中心の位置、重ねる表示への描き方、パネルの文。
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { spiralGeometry, spiralDrawing } from '../js/spiral.js';
+import { spiralGeometry, spiralDrawing, spiralReadout } from '../js/spiral.js';
 import { GOLDEN, SILVER } from '../js/ratios.js';
 
 const EPS = 1e-9;
@@ -197,4 +197,27 @@ test('描画：螺旋の曲線は、横と縦の半径をそれぞれ画像の�
       close(Number(y), arcs[i].to[1] / height * 100, `${label} ${i}段目の終わり（縦）`);
     });
   });
+});
+
+test('パネルの文：名前、巻き始めの角、回る向き', () => {
+  const first = (kind, width, height, corner) => spiralReadout(kind, width, height, corner)[0];
+  // 横長：左下・右上は時計回り、右下・左上は反時計回り
+  assert.equal(first('golden', 1618, 1000, 'bl'), '黄金螺旋：左下から時計回り');
+  assert.equal(first('golden', 1618, 1000, 'tr'), '黄金螺旋：右上から時計回り');
+  assert.equal(first('golden', 1618, 1000, 'br'), '黄金螺旋：右下から反時計回り');
+  assert.equal(first('golden', 1618, 1000, 'tl'), '黄金螺旋：左上から反時計回り');
+  assert.equal(first('silver', 1414, 1000, 'bl'), '白銀比の螺旋：左下から時計回り');
+  // 縦長：長方形の向きが変わるので、同じ角から逆に回る
+  assert.equal(first('silver', 1000, 1414, 'bl'), '白銀比の螺旋：左下から反時計回り');
+  assert.equal(first('silver', 1000, 1414, 'tl'), '白銀比の螺旋：左上から時計回り');
+  // 文の回る向きは、計算した向きといつも一致する
+  eachCase(({ kind, width, height, corner, label }, { clockwise }) => {
+    assert.ok(first(kind, width, height, corner).endsWith(clockwise ? 'から時計回り' : 'から反時計回り'), label);
+  });
+});
+
+test('パネルの文：中心の位置', () => {
+  assert.equal(spiralReadout('silver', 1414, 1000, 'bl')[1], '中心：左端から66.7%・上端から66.7%');
+  assert.equal(spiralReadout('golden', 1618, 1000, 'bl')[1], '中心：左端から72.4%・上端から72.4%');
+  assert.equal(spiralReadout('golden', 1618, 1000, 'tr')[1], '中心：左端から27.6%・上端から27.6%');
 });

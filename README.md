@@ -77,6 +77,7 @@ js/
   thirds.js        三分割
   diagonals.js     対角線と、対角線に直角に交わる線
   spiral.js        螺旋（黄金比・白銀比）
+  line-panel.js    「重ねる線」の欄で、どの段を出すか
   palette.js       色の抽出（メディアンカット）
   palette-view.js  色の抽出結果の表示
   highlight.js     色の場所の強調表示

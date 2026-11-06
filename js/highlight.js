@@ -5,6 +5,7 @@
 
 import { SVG_NS } from './overlay.js';
 import { luminance, contrastRatio } from './contrast.js';
+import { formatPercent } from './palette-view.js';
 
 const DARK = 0x1a;     // #1A1A1A
 const LIGHT = 0xe6;    // #E6E6E6
@@ -56,4 +57,13 @@ export function createHighlight(layer) {
       layer.replaceChildren();
     },
   };
+}
+
+// 強調表示の一言。present は、細かい解像度の画像にその色の画素があるかどうか。
+// 縮小したときにだけ生まれた境目の色は、細かい割り当てには画素がないことがある。隠さずにそのまま伝える
+export function highlightMessage(color, present) {
+  const label = `${color.hex}（${formatPercent(color.ratio)}）`;
+  return present
+    ? `${label}の場所を強調表示しています。`
+    : `${label}に当てはまる画素は、元の解像度の画像にはありません。縮小して計測したときに、色の境目から生まれた色です。`;
 }

@@ -7,12 +7,30 @@
 // 画像の実際の縦横比から計算するので、画像の上では直角になる。
 
 import { addLine } from './lines.js';
+import { measureAspect } from './ratios.js';
 
 // 直角の線が長辺と交わる位置：長辺の端から何%か（＝（短辺÷長辺）の2乗）。
 // 白銀比の画像では50%、黄金比の画像では38.2%。正方形では100%（もう一方の対角線と重なる）
 export function perpendicularHit(width, height) {
   const k = Math.min(width, height) / Math.max(width, height);
   return k * k * 100;
+}
+
+// パネルに出す、直角の線の位置の文。parts と note は折り返してよい区切りの一覧（「ます」だけが次の行に送られないように）
+// - 正方形：{ square: true, parts }。直角の線はもう一方の対角線と重なる
+// - それ以外：{ square: false, text, note }。正方形に近い（近い比率が 1:1）ときは、
+//   直角の線がもう一方の対角線のすぐ横に並び、二重線のように見えるので、その理由を note で添える（ほかは null）
+export function perpendicularReadout(width, height) {
+  if (width === height) {
+    return { square: true, parts: ['直角の線は、', 'もう一方の対角線と重なります'] };
+  }
+  return {
+    square: false,
+    text: `直角の線：長辺の端から${perpendicularHit(width, height).toFixed(1)}%`,
+    note: measureAspect(width, height).nearest?.name === '1:1'
+      ? ['正方形に近いため、', '直角の線は', 'もう一方の対角線の', 'すぐ横を通ります。']
+      : null,
+  };
 }
 
 // 横長として [x1, y1, x2, y2] で決めた線を、縦長なら縦横を入れ替える

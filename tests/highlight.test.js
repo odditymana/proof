@@ -1,8 +1,8 @@
-// 強調表示：寄せる先のグレー（コントラスト比が大きいほう）と、重ねる画像の画素。
+// 強調表示：寄せる先のグレー（コントラスト比が大きいほう）、重ねる画像の画素、一言の文。
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { targetGray, maskPixels } from '../js/highlight.js';
+import { targetGray, maskPixels, highlightMessage } from '../js/highlight.js';
 import { TRANSPARENT } from '../js/palette.js';
 
 const DARK = 0x1a;  // #1A1A1A
@@ -34,4 +34,11 @@ test('重ねる画像：選んだ色の画素は透明、それ以外はグレ�
     DARK, DARK, DARK, 204,
   ]);
   assert.deepEqual([...maskPixels(Uint8Array.from([1, 0]), 1, LIGHT)], [0, 0, 0, 0, LIGHT, LIGHT, LIGHT, 204]);
+});
+
+test('強調表示の一言：画素があるときと、元の解像度の画像に画素がないとき', () => {
+  const color = { hex: '#D9482B', ratio: 0.065 };
+  assert.equal(highlightMessage(color, true), '#D9482B（6.5%）の場所を強調表示しています。');
+  assert.equal(highlightMessage({ hex: '#8F8878', ratio: 0.0004 }, false),
+    '#8F8878（<0.1%）に当てはまる画素は、元の解像度の画像にはありません。縮小して計測したときに、色の境目から生まれた色です。');
 });

@@ -10,8 +10,16 @@ const SHORT_PART = {
   silver: 100 / (1 + SILVER), // 41.4%
 };
 
+const SIDE_NAMES = { left: '左', right: '右', top: '上', bottom: '下' };
+
 export function shortPart(type) {
   return SHORT_PART[type];
+}
+
+// 片側モードで、線の位置を一言で表す文（例：「下端から41.4%」）。両側や比率が「なし」のときは null
+export function gridPositionText({ type, mode, side }) {
+  if (type === 'none' || mode !== 'one') return null;
+  return `${SIDE_NAMES[side]}端から${shortPart(type).toFixed(1)}%`;
 }
 
 // 引く線の一覧 [x1, y1, x2, y2]（座標は画像の幅・高さに対する%）
