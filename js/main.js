@@ -14,6 +14,7 @@ import { renderPalette, setSelected } from './palette-view.js';
 import { createHighlight, highlightMessage } from './highlight.js';
 import { createContrastView } from './contrast-view.js';
 import { initSections } from './sections.js';
+import { flipTransform, flipLabel } from './flip.js';
 
 const stage = document.querySelector('.stage');
 const dropButton = document.querySelector('#drop-button');
@@ -29,7 +30,8 @@ initSections(document.querySelector('.panel'));
 const overlay = createOverlay(sheetImage);
 
 // 色の場所の強調表示。グリッドの線が隠れないよう、グリッドより先（下）に重ねる
-const highlight = createHighlight(overlay.addLayer('highlight'));
+const highlightLayer = overlay.addLayer('highlight');
+const highlight = createHighlight(highlightLayer);
 
 // 重ねる線：比率グリッド・三分割・対角線・直角の線。種類ごとにレイヤーを分け、線の色と不透明度は線全体のレイヤーにかける
 const lineLayer = overlay.addLayer('lines');
@@ -115,6 +117,26 @@ function updateGrid() {
 gridForm.addEventListener('input', updateGrid);
 gridForm.addEventListener('change', updateGrid);
 updateGrid();
+
+// 反転：画像と強調表示だけを反転し、重ねる線は画面の向きのまま。画像を替えても保ち、ブラウザには覚えない
+const flipForm = document.querySelector('#flip-form');
+const flipStatus = document.querySelector('#flip-status');
+
+function updateFlip() {
+  const state = {
+    horizontal: flipForm.elements.horizontal.checked,
+    vertical: flipForm.elements.vertical.checked,
+  };
+  const { svg, css } = flipTransform(state);
+  const image = sheetImage.querySelector('.proof-image');
+  if (image) image.style.transform = css;
+  if (svg) highlightLayer.setAttribute('transform', svg);
+  else highlightLayer.removeAttribute('transform');
+  // 「画像」の欄を閉じていても反転中だと分かるよう、開閉する部分の外に出す（読み上げにも伝わる）
+  flipStatus.textContent = flipLabel(state);
+}
+
+flipForm.addEventListener('change', updateFlip);
 
 // 色の抽出：画素は画像ごとに1回だけ読み取り、色数を変えたら減色だけやり直す
 const paletteForm = document.querySelector('#palette-form');
@@ -218,6 +240,7 @@ initImageLoader({
 
     imageSize = { width, height };
     updateGrid(); // 対角線は画像の縦横比で引き方が変わるので、引き直す
+    updateFlip(); // 反転の状態は、新しい画像にもそのまま当てる
 
     pixels = samplePixels(image);
     detailPixels = sampleDetailPixels(image);

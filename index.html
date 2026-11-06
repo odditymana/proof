@@ -41,6 +41,13 @@
         <div id="section-image" class="section-body">
           <button type="button" id="file-button" class="button">ファイルを選ぶ</button>
           <input type="file" id="file-input" accept="image/*" hidden>
+          <form id="flip-form" class="controls flip-form">
+            <fieldset>
+              <legend>反転</legend>
+              <label><input type="checkbox" name="horizontal" id="flip-horizontal">左右</label>
+              <label><input type="checkbox" name="vertical" id="flip-vertical">上下</label>
+            </fieldset>
+          </form>
           <dl id="image-info" class="info" hidden>
             <dt>ファイル</dt><dd data-info="name"></dd>
             <dt>サイズ</dt><dd data-info="size"></dd>
@@ -48,7 +55,8 @@
             <dt>近い比率</dt><dd data-info="nearest"></dd>
           </dl>
         </div>
-        <!-- 欄を閉じていても、読み込みのエラーが伝わるよう、開閉する部分の外に置く -->
+        <!-- 欄を閉じていても、反転中であることと読み込みのエラーが伝わるよう、開閉する部分の外に置く -->
+        <p id="flip-status" class="status" role="status"></p>
         <p id="status" class="status" role="status"></p>
       </section>
 

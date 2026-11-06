@@ -271,6 +271,11 @@ p {
   color: var(--bg);
 }
 
+/* 画像の欄の「反転」：「ファイルを選ぶ」との間をあける */
+.flip-form {
+  margin-top: 0.75rem;
+}
+
 /* 設定の選択肢：見出し（legend）と横並びのラジオボタン */
 .controls {
   display: grid;
