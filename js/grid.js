@@ -14,26 +14,33 @@ export function shortPart(type) {
   return SHORT_PART[type];
 }
 
+// 引く線の一覧 [x1, y1, x2, y2]（座標は画像の幅・高さに対する%）
+export function gridLines({ type, mode, side }) {
+  if (type === 'none') return [];
+
+  const s = SHORT_PART[type];
+  // 両側：縦横それぞれ、両端から短い部分の位置に線
+  // 片側：選んだ辺から短い部分の位置に1本だけ線
+  const { xs, ys } = mode === 'both'
+    ? { xs: [s, 100 - s], ys: [s, 100 - s] }
+    : {
+      left: { xs: [s], ys: [] },
+      right: { xs: [100 - s], ys: [] },
+      top: { xs: [], ys: [s] },
+      bottom: { xs: [], ys: [100 - s] },
+    }[side];
+
+  return [
+    ...xs.map((x) => [x, 0, x, 100]),
+    ...ys.map((y) => [0, y, 100, y]),
+  ];
+}
+
 export function createGrid(layer) {
   return {
-    render({ type, mode, side }) {
+    render(settings) {
       layer.replaceChildren();
-      if (type === 'none') return;
-
-      const s = SHORT_PART[type];
-      // 両側：縦横それぞれ、両端から短い部分の位置に線
-      // 片側：選んだ辺から短い部分の位置に1本だけ線
-      const { xs, ys } = mode === 'both'
-        ? { xs: [s, 100 - s], ys: [s, 100 - s] }
-        : {
-          left: { xs: [s], ys: [] },
-          right: { xs: [100 - s], ys: [] },
-          top: { xs: [], ys: [s] },
-          bottom: { xs: [], ys: [100 - s] },
-        }[side];
-
-      for (const x of xs) addLine(layer, x, 0, x, 100);
-      for (const y of ys) addLine(layer, 0, y, 100, y);
+      for (const line of gridLines(settings)) addLine(layer, ...line);
     },
   };
 }

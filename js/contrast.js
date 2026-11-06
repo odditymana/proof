@@ -16,6 +16,14 @@ export function luminance(r, g, b) {
   return 0.2126 * R + 0.7152 * G + 0.0722 * B;
 }
 
+// 基準ごとに、満たすかどうか：{ AA: { normal, large }, AAA: { normal, large } }。判定は丸める前の値で行う
+export function meetsCriteria(ratio) {
+  return Object.fromEntries(Object.entries(CRITERIA).map(([level, sizes]) => [
+    level,
+    Object.fromEntries(Object.entries(sizes).map(([size, value]) => [size, ratio >= value])),
+  ]));
+}
+
 // 2つの相対輝度のコントラスト比（1〜21）
 export function contrastRatio(a, b) {
   return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);

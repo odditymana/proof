@@ -15,13 +15,29 @@ export function perpendicularHit(width, height) {
   return k * k * 100;
 }
 
-// 横長として [x1, y1, x2, y2] で引き、縦長なら縦横を入れ替える
-function drawLines(layer, lines, width, height) {
-  const portrait = height > width;
-  for (const [x1, y1, x2, y2] of lines) {
-    if (portrait) addLine(layer, y1, x1, y2, x2);
-    else addLine(layer, x1, y1, x2, y2);
-  }
+// 横長として [x1, y1, x2, y2] で決めた線を、縦長なら縦横を入れ替える
+function orient(lines, width, height) {
+  if (height <= width) return lines;
+  return lines.map(([x1, y1, x2, y2]) => [y1, x1, y2, x2]);
+}
+
+// 対角線の一覧 [x1, y1, x2, y2]（座標は画像の幅・高さに対する%）
+export function diagonalLines(width, height) {
+  return orient([
+    [0, 0, 100, 100], // 左上→右下
+    [100, 0, 0, 100], // 右上→左下
+  ], width, height);
+}
+
+// 直角の線の一覧 [x1, y1, x2, y2]（座標は画像の幅・高さに対する%）
+export function perpendicularLines(width, height) {
+  const h = perpendicularHit(width, height);
+  return orient([
+    [100, 0, 100 - h, 100], // 右上の角から、左上→右下の対角線に直角に
+    [0, 100, h, 0], // 左下の角から、左上→右下の対角線に直角に
+    [0, 0, h, 100], // 左上の角から、右上→左下の対角線に直角に
+    [100, 100, 100 - h, 0], // 右下の角から、右上→左下の対角線に直角に
+  ], width, height);
 }
 
 export function createDiagonals(layer) {
@@ -29,10 +45,7 @@ export function createDiagonals(layer) {
     render({ visible, width, height }) {
       layer.replaceChildren();
       if (!visible || !width || !height) return;
-      drawLines(layer, [
-        [0, 0, 100, 100], // 左上→右下
-        [100, 0, 0, 100], // 右上→左下
-      ], width, height);
+      for (const line of diagonalLines(width, height)) addLine(layer, ...line);
     },
   };
 }
@@ -42,13 +55,7 @@ export function createPerpendiculars(layer) {
     render({ visible, width, height }) {
       layer.replaceChildren();
       if (!visible || !width || !height) return;
-      const h = perpendicularHit(width, height);
-      drawLines(layer, [
-        [100, 0, 100 - h, 100], // 右上の角から、左上→右下の対角線に直角に
-        [0, 100, h, 0], // 左下の角から、左上→右下の対角線に直角に
-        [0, 0, h, 100], // 左上の角から、右上→左下の対角線に直角に
-        [100, 100, 100 - h, 0], // 右下の角から、右上→左下の対角線に直角に
-      ], width, height);
+      for (const line of perpendicularLines(width, height)) addLine(layer, ...line);
     },
   };
 }

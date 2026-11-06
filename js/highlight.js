@@ -18,6 +18,19 @@ export function targetGray({ r, g, b }) {
     : LIGHT;
 }
 
+// 重ねる画像の画素（RGBA の並び）：選んだ色の画素は透明、それ以外はグレーを不透明度80%で重ねる。
+// indices は各画素がどの色に属するか（assignColors の結果）
+export function maskPixels(indices, colorIndex, gray) {
+  const data = new Uint8ClampedArray(indices.length * 4);
+  const alpha = Math.round(STRENGTH * 255);
+  for (let i = 0; i < indices.length; i++) {
+    if (indices[i] === colorIndex) continue;
+    data.fill(gray, i * 4, i * 4 + 3);
+    data[i * 4 + 3] = alpha;
+  }
+  return data;
+}
+
 export function createHighlight(layer) {
   const canvas = document.createElement('canvas');
   const image = document.createElementNS(SVG_NS, 'image');
@@ -33,14 +46,7 @@ export function createHighlight(layer) {
       canvas.width = width;
       canvas.height = height;
       const context = canvas.getContext('2d');
-      const mask = context.createImageData(width, height);
-      const gray = targetGray(color);
-      const alpha = Math.round(STRENGTH * 255);
-      for (let i = 0; i < width * height; i++) {
-        if (indices[i] === colorIndex) continue;
-        mask.data.fill(gray, i * 4, i * 4 + 3);
-        mask.data[i * 4 + 3] = alpha;
-      }
+      const mask = new ImageData(maskPixels(indices, colorIndex, targetGray(color)), width, height);
       context.putImageData(mask, 0, 0);
       image.setAttribute('href', canvas.toDataURL());
       layer.replaceChildren(image);

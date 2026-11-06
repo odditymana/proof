@@ -1,13 +1,13 @@
 // コントラスト比の表示：文字の色と背景の色を選ぶ欄と、結果（比・基準を満たすか・見本）。
 // 色は色リストの色から選ぶか、「HEXで入力」で打ち込む。
 
-import { CRITERIA, hexContrast, formatRatio, parseHex } from './contrast.js';
+import { meetsCriteria, hexContrast, formatRatio, parseHex } from './contrast.js';
 
 const HEX_OPTION = 'hex';
 
 // 初期値：背景＝色リストの1番目、文字＝1番目とのコントラスト比がいちばん大きい色（同じ比なら上にある色）。
 // カラー写真では1番目と2番目が似た色になりやすいため
-function defaultIndex(name, colors) {
+export function defaultIndex(name, colors) {
   if (name === 'bg' || colors.length < 2) return 0;
   let best = 1;
   for (let i = 2; i < colors.length; i++) {
@@ -96,8 +96,9 @@ export function createContrastView(root) {
     ratioText.textContent = `コントラスト比 ${formatRatio(ratio)} : 1`;
     sample.style.color = values.fg;
     sample.style.background = values.bg;
+    const meets = meetsCriteria(ratio);
     for (const cell of cells) {
-      cell.textContent = ratio >= CRITERIA[cell.dataset.level][cell.dataset.size] ? '満たす' : '満たさない';
+      cell.textContent = meets[cell.dataset.level][cell.dataset.size] ? '満たす' : '満たさない';
     }
   }
 

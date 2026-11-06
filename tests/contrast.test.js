@@ -2,7 +2,8 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CRITERIA, luminance, contrastRatio, hexContrast, formatRatio, parseHex } from '../js/contrast.js';
+import { CRITERIA, luminance, contrastRatio, hexContrast, formatRatio, parseHex, meetsCriteria } from '../js/contrast.js';
+import { defaultIndex } from '../js/contrast-view.js';
 
 test('相対輝度：白は1、黒は0', () => {
   assert.equal(luminance(255, 255, 255), 1);
@@ -76,4 +77,30 @@ test('HEX の読み取り：それ以外は読み取れない', () => {
   for (const input of ['', '#', '#12', '#12345', '#1234567', 'GGGGGG', '##123456', '#12 345']) {
     assert.deepEqual(parseHex(input), { error: '3桁か6桁のHEXで入力してください（例：#1F3A5F）。' }, JSON.stringify(input));
   }
+});
+
+test('基準を満たすかどうか：判定は丸める前の値で、基準の値ちょうどは満たす', () => {
+  const all = (value) => ({ AA: { normal: value, large: value }, AAA: { normal: value, large: value } });
+  assert.deepEqual(meetsCriteria(1), all(false));
+  assert.deepEqual(meetsCriteria(21), all(true));
+  assert.deepEqual(meetsCriteria(2.9999999), all(false));
+  assert.deepEqual(meetsCriteria(3), { AA: { normal: false, large: true }, AAA: { normal: false, large: false } });
+  // 4.4999… は表示では「4.49」。4.5 の基準は満たさない
+  assert.deepEqual(meetsCriteria(4.4999999), { AA: { normal: false, large: true }, AAA: { normal: false, large: false } });
+  assert.deepEqual(meetsCriteria(4.5), { AA: { normal: true, large: true }, AAA: { normal: false, large: true } });
+  assert.deepEqual(meetsCriteria(6.9999999), { AA: { normal: true, large: true }, AAA: { normal: false, large: true } });
+  assert.deepEqual(meetsCriteria(7), all(true));
+});
+
+test('欄の初期値：背景は1番目、文字は1番目とのコントラスト比がいちばん大きい色', () => {
+  const colors = (...hexes) => hexes.map((hex) => ({ hex }));
+  const photo = colors('#E8E2D6', '#D9D2C4', '#1F3A5F', '#000000', '#D9482B');
+  assert.equal(defaultIndex('bg', photo), 0);
+  assert.equal(defaultIndex('fg', photo), 3);
+  // 同じ比なら、色リストで上にある色
+  assert.equal(defaultIndex('fg', colors('#FFFFFF', '#777777', '#000000', '#000000')), 2);
+  assert.equal(defaultIndex('fg', colors('#FFFFFF', '#000000', '#000000')), 1);
+  // 色が1つ以下なら1番目
+  assert.equal(defaultIndex('fg', colors('#FFFFFF')), 0);
+  assert.equal(defaultIndex('fg', []), 0);
 });

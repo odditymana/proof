@@ -116,32 +116,41 @@ export function spiralGeometry(kind, width, height, corner) {
   };
 }
 
+// 重ねる表示に引くもの：線の一覧 [x1, y1, x2, y2]（長方形の枠4本、続いて分割線）と、螺旋の曲線（SVG の path の d）。
+// 座標は画像の幅・高さに対する%
+export function spiralDrawing(kind, width, height, corner) {
+  const { rect, clockwise, dividers, arcs } = spiralGeometry(kind, width, height, corner);
+  const px = (x) => (x / width) * 100;
+  const py = (y) => (y / height) * 100;
+
+  // 当てはめた長方形の枠
+  const [l, t, r, b] = [px(rect.x), py(rect.y), px(rect.x + rect.w), py(rect.y + rect.h)];
+  const lines = [
+    [l, t, r, t],
+    [r, t, r, b],
+    [r, b, l, b],
+    [l, b, l, t],
+    // 分割線
+    ...dividers.map(([x1, y1, x2, y2]) => [px(x1), py(y1), px(x2), py(y2)]),
+  ];
+
+  // 円弧をつないだ螺旋。重ねる表示は画像の縦横に合わせて伸ばしているので、
+  // 円弧の横と縦の半径をそれぞれ画像の幅・高さで割り、画面の上で作図どおりの形になるようにする
+  const sweep = clockwise ? 1 : 0; // SVG（下向きが正）では 1 が時計回り
+  const d = arcs.map(({ rx, ry, from, to }, i) =>
+    `${i === 0 ? `M ${px(from[0])} ${py(from[1])} ` : ''}A ${px(rx)} ${py(ry)} 0 0 ${sweep} ${px(to[0])} ${py(to[1])}`,
+  ).join(' ');
+
+  return { lines, d };
+}
+
 export function createSpiral(layer) {
   return {
     render({ kind, width, height, corner }) {
       layer.replaceChildren();
       if (!KINDS[kind] || !width || !height) return;
-      const { rect, clockwise, dividers, arcs } = spiralGeometry(kind, width, height, corner);
-      // 座標は画像の幅・高さに対する%
-      const px = (x) => (x / width) * 100;
-      const py = (y) => (y / height) * 100;
-
-      // 当てはめた長方形の枠
-      const [l, t, r, b] = [px(rect.x), py(rect.y), px(rect.x + rect.w), py(rect.y + rect.h)];
-      addLine(layer, l, t, r, t);
-      addLine(layer, r, t, r, b);
-      addLine(layer, r, b, l, b);
-      addLine(layer, l, b, l, t);
-
-      // 分割線
-      for (const [x1, y1, x2, y2] of dividers) addLine(layer, px(x1), py(y1), px(x2), py(y2));
-
-      // 円弧をつないだ螺旋。重ねる表示は画像の縦横に合わせて伸ばしているので、
-      // 円弧の横と縦の半径をそれぞれ画像の幅・高さで割り、画面の上で作図どおりの形になるようにする
-      const sweep = clockwise ? 1 : 0; // SVG（下向きが正）では 1 が時計回り
-      const d = arcs.map(({ rx, ry, from, to }, i) =>
-        `${i === 0 ? `M ${px(from[0])} ${py(from[1])} ` : ''}A ${px(rx)} ${py(ry)} 0 0 ${sweep} ${px(to[0])} ${py(to[1])}`,
-      ).join(' ');
+      const { lines, d } = spiralDrawing(kind, width, height, corner);
+      for (const line of lines) addLine(layer, ...line);
       const path = document.createElementNS(SVG_NS, 'path');
       path.setAttribute('d', d);
       layer.append(path);

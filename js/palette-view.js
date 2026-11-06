@@ -31,23 +31,29 @@ export function renderPalette({ bar, list, top, note }, { colors }, requestedCou
     list.append(item);
   });
 
-  // 上位3色（2色しかなければ2色）の合計を100としたときの比
-  const leaders = colors.slice(0, 3);
-  top.hidden = leaders.length < 2;
-  if (!top.hidden) {
-    const sum = leaders.reduce((total, color) => total + color.ratio, 0);
-    top.querySelector('dt').textContent = `上位${leaders.length}色の比`;
-    top.querySelector('dd').textContent =
-      leaders.map((color) => Math.round(color.ratio / sum * 100)).join(' : ');
+  const ratio = topRatio(colors);
+  top.hidden = !ratio;
+  if (ratio) {
+    top.querySelector('dt').textContent = `上位${ratio.count}色の比`;
+    top.querySelector('dd').textContent = ratio.parts.join(' : ');
   }
 
-  if (colors.length === 0) {
-    note.textContent = '不透明な画素がありませんでした。';
-  } else if (colors.length < requestedCount) {
-    note.textContent = `見分けられる色は${colors.length}色でした。`;
-  } else {
-    note.textContent = '';
-  }
+  note.textContent = paletteNote(colors, requestedCount);
+}
+
+// 上位3色（2色しかなければ2色）の合計を100としたときの比。1色以下なら null
+export function topRatio(colors) {
+  const leaders = colors.slice(0, 3);
+  if (leaders.length < 2) return null;
+  const sum = leaders.reduce((total, color) => total + color.ratio, 0);
+  return { count: leaders.length, parts: leaders.map((color) => Math.round(color.ratio / sum * 100)) };
+}
+
+// 色の一覧の下に出す一言（なければ空の文字）
+export function paletteNote(colors, requestedCount) {
+  if (colors.length === 0) return '不透明な画素がありませんでした。';
+  if (colors.length < requestedCount) return `見分けられる色は${colors.length}色でした。`;
+  return '';
 }
 
 // 選んでいる色のボタンだけを「押された状態」にする（index が null なら全部解除）

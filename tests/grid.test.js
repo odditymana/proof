@@ -1,8 +1,8 @@
-// 比率グリッド：短い部分の割合（長い部分：短い部分＝比率：1）。
+// 比率グリッド：短い部分の割合（長い部分：短い部分＝比率：1）と、引く線の一覧。
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { shortPart } from '../js/grid.js';
+import { shortPart, gridLines } from '../js/grid.js';
 import { GOLDEN, SILVER } from '../js/ratios.js';
 
 test('短い部分と長い部分の位置', () => {
@@ -17,4 +17,27 @@ test('長い部分÷短い部分 が比率になる', () => {
     const s = shortPart(type);
     assert.ok(Math.abs((100 - s) / s - ratio) < 1e-12, type);
   }
+});
+
+test('引く線：両側なら縦横2本ずつ、片側なら選んだ辺から1本、比率が「なし」なら0本', () => {
+  const s = shortPart('silver');
+  assert.deepEqual(gridLines({ type: 'silver', mode: 'both', side: 'left' }), [
+    [s, 0, s, 100], [100 - s, 0, 100 - s, 100], [0, s, 100, s], [0, 100 - s, 100, 100 - s],
+  ]);
+  assert.deepEqual(gridLines({ type: 'silver', mode: 'one', side: 'left' }), [[s, 0, s, 100]]);
+  assert.deepEqual(gridLines({ type: 'silver', mode: 'one', side: 'right' }), [[100 - s, 0, 100 - s, 100]]);
+  assert.deepEqual(gridLines({ type: 'silver', mode: 'one', side: 'top' }), [[0, s, 100, s]]);
+  assert.deepEqual(gridLines({ type: 'none', mode: 'both', side: 'left' }), []);
+  assert.deepEqual(gridLines({ type: 'none', mode: 'one', side: 'top' }), []);
+});
+
+test('片側・下：下端から41.4%（上端から58.6%）に1本', () => {
+  const [line, ...rest] = gridLines({ type: 'silver', mode: 'one', side: 'bottom' });
+  assert.equal(rest.length, 0);
+  assert.equal(line[0], 0);
+  assert.equal(line[2], 100);
+  assert.equal(line[1], line[3]);
+  assert.equal(line[1].toFixed(1), '58.6');
+  // 黄金比・片側・右：左端から61.8%
+  assert.equal(gridLines({ type: 'golden', mode: 'one', side: 'right' })[0][0].toFixed(1), '61.8');
 });

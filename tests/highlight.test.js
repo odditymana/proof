@@ -1,8 +1,9 @@
-// 強調表示で、選んだ色以外を寄せる先のグレー（コントラスト比が大きいほう）。
+// 強調表示：寄せる先のグレー（コントラスト比が大きいほう）と、重ねる画像の画素。
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { targetGray } from '../js/highlight.js';
+import { targetGray, maskPixels } from '../js/highlight.js';
+import { TRANSPARENT } from '../js/palette.js';
 
 const DARK = 0x1a;  // #1A1A1A
 const LIGHT = 0xe6; // #E6E6E6
@@ -19,4 +20,18 @@ test('中間の明るさの色：コントラスト比の大きいほうに分�
   assert.equal(targetGray({ r: 0x80, g: 0x80, b: 0x80 }), DARK);
   // #707070：暗いグレーとは約3.5、明るいグレーとは約4.0
   assert.equal(targetGray({ r: 0x70, g: 0x70, b: 0x70 }), LIGHT);
+});
+
+test('重ねる画像：選んだ色の画素は透明、それ以外はグレーを不透明度80%（255×0.8≒204）で', () => {
+  const indices = Uint8Array.from([0, 1, TRANSPARENT, 0, 2]);
+  const pixels = maskPixels(indices, 0, DARK);
+  assert.ok(pixels instanceof Uint8ClampedArray);
+  assert.deepEqual([...pixels], [
+    0, 0, 0, 0,
+    DARK, DARK, DARK, 204,
+    DARK, DARK, DARK, 204, // 透明な画素（どの色にも属さない）もグレーを重ねる
+    0, 0, 0, 0,
+    DARK, DARK, DARK, 204,
+  ]);
+  assert.deepEqual([...maskPixels(Uint8Array.from([1, 0]), 1, LIGHT)], [0, 0, 0, 0, LIGHT, LIGHT, LIGHT, 204]);
 });

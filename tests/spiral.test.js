@@ -1,8 +1,8 @@
-// 螺旋（黄金比・白銀比）：当てはめる長方形、円弧のつながり、回る向き、中心の位置。
+// 螺旋（黄金比・白銀比）：当てはめる長方形、円弧のつながり、回る向き、中心の位置、重ねる表示への描き方。
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { spiralGeometry } from '../js/spiral.js';
+import { spiralGeometry, spiralDrawing } from '../js/spiral.js';
 import { GOLDEN, SILVER } from '../js/ratios.js';
 
 const EPS = 1e-9;
@@ -165,4 +165,36 @@ test('同じ入力なら、何度でもまったく同じ形になる', () => {
   for (const kind of Object.keys(KINDS)) {
     assert.deepEqual(spiralGeometry(kind, 1414, 1000, 'bl'), spiralGeometry(kind, 1414, 1000, 'bl'));
   }
+});
+
+test('描画：枠4本と分割線は、画素の座標を画像の幅・高さで割った%', () => {
+  eachCase(({ kind, width, height, corner, label }, { rect, dividers }) => {
+    const { lines } = spiralDrawing(kind, width, height, corner);
+    assert.equal(lines.length, 4 + KINDS[kind].levels, label);
+    const [l, t, r, b] = [rect.x / width * 100, rect.y / height * 100, (rect.x + rect.w) / width * 100, (rect.y + rect.h) / height * 100];
+    assert.deepEqual(lines.slice(0, 4), [[l, t, r, t], [r, t, r, b], [r, b, l, b], [l, b, l, t]], label);
+    dividers.forEach(([x1, y1, x2, y2], i) => {
+      assert.deepEqual(lines[4 + i], [x1 / width * 100, y1 / height * 100, x2 / width * 100, y2 / height * 100], label);
+    });
+  });
+});
+
+test('描画：螺旋の曲線は、横と縦の半径をそれぞれ画像の幅・高さで割り、回る向きの値は時計回りなら1', () => {
+  eachCase(({ kind, width, height, corner, label }, { clockwise, arcs }) => {
+    const { d } = spiralDrawing(kind, width, height, corner);
+    const number = String.raw`(-?[\d.e+-]+)`;
+    const move = d.match(new RegExp(`^M ${number} ${number} `));
+    assert.ok(move, label);
+    close(Number(move[1]), arcs[0].from[0] / width * 100, `${label} 始まり（横）`);
+    close(Number(move[2]), arcs[0].from[1] / height * 100, `${label} 始まり（縦）`);
+    const segments = [...d.matchAll(new RegExp(`A ${number} ${number} 0 0 ([01]) ${number} ${number}`, 'g'))];
+    assert.equal(segments.length, arcs.length, label);
+    segments.forEach(([, rx, ry, sweep, x, y], i) => {
+      close(Number(rx), arcs[i].rx / width * 100, `${label} ${i}段目の横の半径`);
+      close(Number(ry), arcs[i].ry / height * 100, `${label} ${i}段目の縦の半径`);
+      assert.equal(sweep, clockwise ? '1' : '0', label);
+      close(Number(x), arcs[i].to[0] / width * 100, `${label} ${i}段目の終わり（横）`);
+      close(Number(y), arcs[i].to[1] / height * 100, `${label} ${i}段目の終わり（縦）`);
+    });
+  });
 });
