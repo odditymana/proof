@@ -3,7 +3,7 @@
 import { initImageLoader } from './image-loader.js';
 import { imageInfoTexts } from './ratios.js';
 import { createOverlay } from './overlay.js';
-import { applyLineStyle } from './lines.js';
+import { applyLineStyle, drawCasing } from './lines.js';
 import { createGrid, gridPositionText } from './grid.js';
 import { createThirds } from './thirds.js';
 import { createDiagonals, createPerpendiculars, perpendicularReadout } from './diagonals.js';
@@ -33,13 +33,14 @@ const overlay = createOverlay(sheetImage);
 const highlightLayer = overlay.addLayer('highlight');
 const highlight = createHighlight(highlightLayer);
 
-// 重ねる線：比率グリッド・三分割・対角線・直角の線。種類ごとにレイヤーを分け、線の色と不透明度は線全体のレイヤーにかける
+// 重ねる線：比率グリッド・三分割・対角線・直角の線・螺旋。種類ごとにレイヤーを分け、線の色と不透明度は線全体のレイヤーにかける
 const lineLayer = overlay.addLayer('lines');
-const grid = createGrid(overlay.addLayer('grid', lineLayer));
-const thirds = createThirds(overlay.addLayer('thirds', lineLayer));
-const diagonals = createDiagonals(overlay.addLayer('diagonals', lineLayer));
-const perpendiculars = createPerpendiculars(overlay.addLayer('perpendiculars', lineLayer));
-const spiral = createSpiral(overlay.addLayer('spiral', lineLayer));
+// 縁取りの縁は、線の種類のレイヤーより先（下）に置く
+const casingLayer = overlay.addLayer('casing', lineLayer);
+const lineSublayers = ['grid', 'thirds', 'diagonals', 'perpendiculars', 'spiral'].map((name) => overlay.addLayer(name, lineLayer));
+const [grid, thirds, diagonals, perpendiculars, spiral] = [
+  createGrid, createThirds, createDiagonals, createPerpendiculars, createSpiral,
+].map((create, index) => create(lineSublayers[index]));
 const gridForm = document.querySelector('#grid-form');
 const gridMode = document.querySelector('#grid-mode');
 const gridSide = document.querySelector('#grid-side');
@@ -111,6 +112,7 @@ function updateGrid() {
   diagonals.render({ visible: settings.diagonals === 'on', ...imageSize });
   perpendiculars.render({ visible: settings.perpendiculars === 'on', ...imageSize });
   spiral.render({ kind: settings.spiral, corner: settings.spiralCorner, ...imageSize });
+  drawCasing(casingLayer, lineSublayers, settings.color); // 線を描き直したあとに、縁も描き直す
 }
 
 // スライダーは動かしている間も反映する

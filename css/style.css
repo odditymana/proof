@@ -147,6 +147,11 @@ p {
   fill: none; /* 黄金螺旋の曲線を塗りつぶさない */
 }
 
+/* 縁取りの縁：白い線（1px）の両側に1pxずつ見えるよう、3pxの黒い線を下に描く（不透明度60%は lines.js でレイヤー全体にかける） */
+.overlay [data-layer="casing"] {
+  stroke-width: 3px;
+}
+
 /* トンボ：各隅の点から、横線と縦線を外側へ伸ばす */
 .trim {
   position: absolute;
