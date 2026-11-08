@@ -21,6 +21,12 @@
       <button type="button" class="stage-empty" id="drop-button">
         画像をここにドロップ<br>または、クリックかタップでファイルを選ぶ
       </button>
+      <!-- 手元に画像がなくても試せるよう、空のときだけサンプルのボタンを出す（ドロップエリアのボタンの中には置けないので、下に別に置く） -->
+      <div id="stage-samples" class="sample-row sample-row--stage" role="group" aria-labelledby="stage-samples-label">
+        <span id="stage-samples-label" class="sample-label">サンプルで試す</span>
+        <button type="button" class="button" data-sample="silver">白銀比</button>
+        <button type="button" class="button" data-sample="golden">黄金比</button>
+      </div>
 
       <div class="sheet" hidden>
         <div class="sheet-image">
@@ -41,6 +47,11 @@
         <div id="section-image" class="section-body">
           <button type="button" id="file-button" class="button">ファイルを選ぶ</button>
           <input type="file" id="file-input" accept="image/*" hidden>
+          <div id="panel-samples" class="sample-row" role="group" aria-labelledby="panel-samples-label">
+            <span id="panel-samples-label" class="sample-label">サンプルで試す</span>
+            <button type="button" class="button" data-sample="silver">白銀比</button>
+            <button type="button" class="button" data-sample="golden">黄金比</button>
+          </div>
           <form id="flip-form" class="controls flip-form">
             <fieldset>
               <legend>反転</legend>

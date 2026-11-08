@@ -15,6 +15,7 @@ import { createHighlight, highlightMessage } from './highlight.js';
 import { createContrastView } from './contrast-view.js';
 import { initSections } from './sections.js';
 import { flipTransform, flipLabel } from './flip.js';
+import { findSample, sampleFileName, sampleMessage, applySampleSettings, fetchSample } from './samples.js';
 
 const stage = document.querySelector('.stage');
 const dropButton = document.querySelector('#drop-button');
@@ -23,6 +24,8 @@ const sheetImage = sheet.querySelector('.sheet-image');
 const imageInfo = document.querySelector('#image-info');
 const status = document.querySelector('#status');
 const fileButton = document.querySelector('#file-button');
+const stageSamples = document.querySelector('#stage-samples');
+const panelSamples = document.querySelector('#panel-samples');
 
 // パネルの欄の折りたたみ（開閉の状態はブラウザの中だけに覚える）
 initSections(document.querySelector('.panel'));
@@ -215,32 +218,41 @@ document.addEventListener('keydown', (event) => {
 const contrastView = createContrastView(document.querySelector('.contrast'));
 contrastView.setColors([]);
 
-initImageLoader({
+const loader = initImageLoader({
   dropZone: stage,
   input: document.querySelector('#file-input'),
   buttons: [dropButton, fileButton],
 
-  onLoad({ image, name, width, height }) {
+  // sample：サンプル画像で試したときだけ渡される（samples.js の一覧の1つ）
+  onLoad({ image, name, width, height, sample = null }) {
+    const shownName = sample ? sampleFileName(sample) : name;
     image.className = 'proof-image';
-    image.alt = `読み込んだ画像：${name}`;
+    image.alt = `読み込んだ画像：${shownName}`;
     sheetImage.querySelector('.proof-image')?.remove();
     sheetImage.prepend(image);
-    // 空のエリアのボタンは消えるので、そこにあったフォーカスは「ファイルを選ぶ」へ移す
-    const hadFocus = document.activeElement === dropButton;
+    // 空のエリアのボタンは消えるので、そこにあったフォーカスは、パネルの同じ働きのボタンへ移す
+    const focused = document.activeElement;
     dropButton.hidden = true;
-    if (hadFocus) fileButton.focus();
+    stageSamples.hidden = true;
+    if (focused === dropButton) fileButton.focus();
+    else if (stageSamples.contains(focused)) {
+      panelSamples.querySelector(`[data-sample="${focused.dataset.sample}"]`).focus();
+    }
     sheet.hidden = false;
 
-    imageInfo.querySelector('[data-info="name"]').textContent = name;
+    imageInfo.querySelector('[data-info="name"]').textContent = shownName;
     const info = imageInfoTexts(width, height);
     imageInfo.querySelector('[data-info="size"]').textContent = info.size;
     imageInfo.querySelector('[data-info="aspect"]').textContent = info.aspect;
     imageInfo.querySelector('[data-info="nearest"]').textContent = info.nearest;
 
     imageInfo.hidden = false;
-    status.textContent = '';
+    // サンプルのときは、読み込んだことと切り替えた設定を伝える（自分の画像を読み込んだら消す）
+    status.textContent = sample ? sampleMessage(sample) : '';
 
     imageSize = { width, height };
+    // サンプルのときは、重ねる線を見どころが分かる設定に切り替える（線の色・不透明度・反転・色数は変えない）
+    if (sample) applySampleSettings(gridForm, sample.settings);
     updateGrid(); // 対角線は画像の縦横比で引き方が変わるので、引き直す
     updateFlip(); // 反転の状態は、新しい画像にもそのまま当てる
 
@@ -254,3 +266,20 @@ initImageLoader({
     status.textContent = message;
   },
 });
+
+// サンプル画像で試す：同じサイトの中の画像を受け取り、ファイルを選んだときと同じ処理で読み込む
+for (const group of [stageSamples, panelSamples]) {
+  group.addEventListener('click', async (event) => {
+    const button = event.target.closest('[data-sample]');
+    if (!button) return;
+    const sample = findSample(button.dataset.sample);
+    let file;
+    try {
+      file = await fetchSample(sample);
+    } catch {
+      status.textContent = 'サンプル画像を読み込めませんでした。';
+      return;
+    }
+    loader.load(file, { sample });
+  });
+}

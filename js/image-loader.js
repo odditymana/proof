@@ -1,4 +1,4 @@
-// 画像の読み込み：ドラッグ＆ドロップと「ファイルを選ぶ」ボタン。
+// 画像の読み込み：ドラッグ＆ドロップと「ファイルを選ぶ」ボタン。サンプル画像も、ファイルにしてから同じ処理を通す。
 // 画像は URL.createObjectURL でブラウザ内だけで扱い、外部には送信しない。
 
 let currentUrl = null;
@@ -29,7 +29,8 @@ export function initImageLoader({ dropZone, input, buttons, onLoad, onError }) {
     if (file) load(file);
   });
 
-  async function load(file) {
+  // extra：onLoad にそのまま渡す追加の情報（サンプルのときの { sample } など）
+  async function load(file, extra = {}) {
     if (!file.type.startsWith('image/')) {
       onError('画像ファイルを選んでください。');
       return;
@@ -63,6 +64,9 @@ export function initImageLoader({ dropZone, input, buttons, onLoad, onError }) {
       name: file.name,
       width: image.naturalWidth,
       height: image.naturalHeight,
+      ...extra,
     });
   }
+
+  return { load };
 }
