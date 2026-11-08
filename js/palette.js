@@ -82,6 +82,22 @@ export function measureShares(palette, assignment) {
   };
 }
 
+// 分け方の記録（rules）の各段階で、2つに分けたうちの少ないほうの側が占める割合（0〜1）を返す。
+// 画素数は counts（色の番号ごと。measureShares のあとなら長辺1000pxで数え直した値）で数える。
+// 両側とも0画素の段階は数えない。色が1つ以下（段階がない）なら空の配列
+export function splitBalances(rules, counts) {
+  const balances = [];
+  const walk = (node) => {
+    if (!node.below) return counts[node.index];
+    const below = walk(node.below);
+    const above = walk(node.above);
+    if (below + above > 0) balances.push(Math.min(below, above) / (below + above));
+    return below + above;
+  };
+  if (rules) walk(rules);
+  return balances;
+}
+
 function readPixels(image, width, height) {
   const canvas = document.createElement('canvas');
   canvas.width = width;

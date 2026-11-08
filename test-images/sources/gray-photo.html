@@ -1,0 +1,37 @@
+<!-- gray-photo.png の元（CC0）。ほぼ白黒の写真を想定：斜めの光・ぼかした暗い円と明るい部分・周辺の減光・粒子。
+     粒子の乱数は種を固定しているので、毎回同じ画像になる -->
+<body style="margin:0;width:1414px;height:1000px;overflow:hidden">
+<canvas id="c" width="1414" height="1000" style="display:block"></canvas>
+<script>
+  const W = 1414, H = 1000;
+  const g = document.getElementById('c').getContext('2d');
+  let seed = 42;
+  const random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+
+  const light = g.createLinearGradient(0, 0, W, H);
+  light.addColorStop(0, '#d8d4cc');
+  light.addColorStop(1, '#3a3836');
+  g.fillStyle = light;
+  g.fillRect(0, 0, W, H);
+
+  g.filter = 'blur(60px)';
+  g.fillStyle = '#1c1b1a';
+  g.beginPath(); g.ellipse(900, 620, 260, 330, 0.3, 0, 7); g.fill();
+  g.fillStyle = '#efece6';
+  g.beginPath(); g.ellipse(330, 260, 220, 160, 0, 0, 7); g.fill();
+  g.filter = 'none';
+
+  const vignette = g.createRadialGradient(W / 2, H / 2, 200, W / 2, H / 2, 900);
+  vignette.addColorStop(0, 'rgba(0,0,0,0)');
+  vignette.addColorStop(1, 'rgba(0,0,0,0.55)');
+  g.fillStyle = vignette;
+  g.fillRect(0, 0, W, H);
+
+  const pixels = g.getImageData(0, 0, W, H);
+  for (let i = 0; i < pixels.data.length; i += 4) {
+    const grain = (random() - 0.5) * 16;
+    for (let c = 0; c < 3; c++) pixels.data[i + c] = Math.max(0, Math.min(255, pixels.data[i + c] + grain));
+  }
+  g.putImageData(pixels, 0, 0);
+</script>
+</body>

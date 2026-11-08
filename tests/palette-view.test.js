@@ -2,7 +2,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { formatPercent, topRatio, paletteNote } from '../js/palette-view.js';
+import { formatPercent, topRatio, paletteNote, isHalved } from '../js/palette-view.js';
 
 test('割合の表記：0 は「0%」、0 より大きく0.1%未満は「<0.1%」', () => {
   assert.equal(formatPercent(0), '0%');
@@ -48,4 +48,25 @@ test('色の一覧の下に出す一言：0% の色があるとき（原因は�
   assert.equal(paletteNote(colors(0.86, 0.14, 0, 0), 5), `見分けられる色は4色でした。${zero}`);
   // <0.1% でも画素があれば出さない
   assert.equal(paletteNote(colors(0.9995, 0.0005), 2), '');
+});
+
+test('ほぼ半分ずつの判定：すべての段階で、少ないほうが40%以上', () => {
+  assert.equal(isHalved([0.5, 0.466, 0.499]), true);
+  // ちょうど40%は含める
+  assert.equal(isHalved([0.4, 0.5]), true);
+  assert.equal(isHalved([0.3999, 0.5]), false);
+  // gray-tones（地を切り分ける段階が36.6%）
+  assert.equal(isHalved([0.488, 0.366, 0.427]), false);
+  // 段階がなければ出さない
+  assert.equal(isHalved([]), false);
+});
+
+test('色の一覧の下に出す一言：ほぼ半分ずつに分かれたとき（良し悪しは言わない）', () => {
+  const halved = 'この画像では、色を分ける計算がどの段階でも画素をほぼ半分ずつに分けました（少ないほうが40%以上）。'
+    + 'そのため、各色の % は色の多さの違いではなく、計算の手順で決まった値です。';
+  const colors = (...ratios) => ratios.map((ratio) => ({ ratio }));
+  assert.equal(paletteNote(colors(0.25, 0.25, 0.25, 0.125, 0.125), 5, true), halved);
+  assert.equal(paletteNote(colors(0.5, 0.25, 0.25), 3, false), '');
+  // 「見分けられる色は○色でした」と並んで出る
+  assert.equal(paletteNote(colors(0.5, 0.25, 0.25), 5, true), `見分けられる色は3色でした。${halved}`);
 });

@@ -4,7 +4,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { medianCut, assignColors, measureShares, TRANSPARENT } from '../js/palette.js';
+import { medianCut, assignColors, measureShares, splitBalances, TRANSPARENT } from '../js/palette.js';
 
 // 画素の一覧 [[r, g, b, a], …] から、canvas の getImageData と同じ形のデータを作る
 function image(pixels, width = pixels.length) {
@@ -198,4 +198,46 @@ test('数え直し：同じ入力なら、何度でもまったく同じ結果�
     // 多い順に並んでいる
     a.palette.colors.forEach((c, i) => i && assert.ok(a.palette.colors[i - 1].count >= c.count));
   }
+});
+
+// 段階ごとの釣り合い（少ないほうの側の割合）を、メディアンカットと数え直しを通して求める
+function balancesOf(input, count) {
+  const coarse = medianCut(input, count);
+  const { palette } = measureShares(coarse, assignColors(input, coarse));
+  return { palette, balances: splitBalances(palette.rules, palette.colors.map((color) => color.count)) };
+}
+
+// 黒から白へなだらかに変わるグラデーション（0〜255 の灰色が1画素ずつ）
+const gradient = () => image(Array.from({ length: 256 }, (_, v) => [v, v, v]));
+
+test('段階ごとの釣り合い：なだらかなグラデーションは、どの段階も半分ずつ', () => {
+  // 4色：25%ずつ
+  const four = balancesOf(gradient(), 4);
+  assert.deepEqual(four.balances, [0.5, 0.5, 0.5]);
+  assert.deepEqual(four.palette.colors.map((color) => color.ratio), [0.25, 0.25, 0.25, 0.25]);
+  // 3色：50%・25%・25%（% はばらつくが、どの段階も半分ずつ）
+  const three = balancesOf(gradient(), 3);
+  assert.deepEqual(three.balances, [0.5, 0.5]);
+  assert.deepEqual(three.palette.colors.map((color) => color.ratio), [0.5, 0.25, 0.25]);
+});
+
+test('段階ごとの釣り合い：色のかたまりがある画像では、偏った段階がある', () => {
+  // 60%・30%・10% の3色
+  const input = image([...repeat([20, 40, 90], 60), ...repeat([230, 220, 200], 30), ...repeat([210, 70, 40], 10)]);
+  const { balances } = balancesOf(input, 3);
+  assert.equal(balances.length, 2);
+  assert.ok(Math.min(...balances) < 0.4);
+});
+
+test('段階ごとの釣り合い：画素数は数え直した値で、下の段階から順に返す', () => {
+  const rules = { channel: 0, threshold: 100, below: { index: 0 },
+    above: { channel: 1, threshold: 50, below: { index: 1 }, above: { index: 2 } } };
+  assert.deepEqual(splitBalances(rules, [50, 30, 20]), [0.4, 0.5]);
+  // 両側とも0画素の段階は数えない
+  assert.deepEqual(splitBalances(rules, [50, 0, 0]), [0]);
+});
+
+test('段階ごとの釣り合い：段階がない（1色・すべて透明）なら空', () => {
+  assert.deepEqual(balancesOf(image(repeat([10, 10, 10], 20)), 5).balances, []);
+  assert.deepEqual(splitBalances(null, []), []);
 });
